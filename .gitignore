@@ -1,0 +1,22 @@
+# Xcode / Swift
+build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+*.xcscmblueprint
+*.xccheckout
+.swiftpm/
+
+# XcodeGen generates the project from project.yml — don't commit it.
+TimeZones.xcodeproj/
+
+# macOS
+.DS_Store
+
+# Misc
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+Pods/

@@ -1,0 +1,78 @@
+name: TimeZones
+options:
+  bundleIdPrefix: com.joshuainyang
+  deploymentTarget:
+    macOS: "14.0"
+  createIntermediateGroups: true
+  groupSortPosition: top
+
+settings:
+  base:
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: "1"
+    SWIFT_VERSION: "5.0"
+    CODE_SIGN_STYLE: Automatic
+    DEVELOPMENT_TEAM: ""          # <-- set your Apple Developer Team ID here (or in Xcode)
+    ENABLE_HARDENED_RUNTIME: YES
+
+targets:
+  TimeZones:
+    type: application
+    platform: macOS
+    sources:
+      - path: TimeZones
+      - path: TimeZonesKit
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.joshuainyang.TimeZones
+        PRODUCT_NAME: TimeZones
+        CODE_SIGN_ENTITLEMENTS: TimeZones/TimeZones.entitlements
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_LSUIElement: YES
+        INFOPLIST_KEY_CFBundleDisplayName: TimeZones
+        INFOPLIST_KEY_NSHumanReadableCopyright: "© 2026"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        COMBINE_HIDPI_IMAGES: YES
+    dependencies:
+      - target: TimeZonesWidget
+
+  TimeZonesWidget:
+    type: app-extension
+    platform: macOS
+    sources:
+      - path: TimeZonesWidget
+      - path: TimeZonesKit
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.joshuainyang.TimeZones.Widget
+        PRODUCT_NAME: TimeZonesWidget
+        INFOPLIST_FILE: TimeZonesWidget/Info.plist
+        CODE_SIGN_ENTITLEMENTS: TimeZonesWidget/TimeZonesWidget.entitlements
+        SKIP_INSTALL: YES
+
+  TimeZonesKitTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: TimeZonesKit
+      - path: TimeZonesKitTests
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.joshuainyang.TimeZonesKitTests
+        GENERATE_INFOPLIST_FILE: YES
+
+schemes:
+  TimeZones:
+    build:
+      targets:
+        TimeZones: all
+        TimeZonesWidget: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - TimeZonesKitTests
+    archive:
+      config: Release
