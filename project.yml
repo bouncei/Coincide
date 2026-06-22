@@ -1,6 +1,6 @@
 name: TimeZones
 options:
-  bundleIdPrefix: com.joshuainyang
+  bundleIdPrefix: dev.bouncei
   deploymentTarget:
     macOS: "14.0"
   createIntermediateGroups: true
@@ -24,7 +24,7 @@ targets:
       - path: TimeZonesKit
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.joshuainyang.TimeZones
+        PRODUCT_BUNDLE_IDENTIFIER: dev.bouncei.TimeZones
         PRODUCT_NAME: TimeZones
         CODE_SIGN_ENTITLEMENTS: TimeZones/TimeZones.entitlements
         GENERATE_INFOPLIST_FILE: YES
@@ -45,7 +45,7 @@ targets:
       - path: TimeZonesKit
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.joshuainyang.TimeZones.Widget
+        PRODUCT_BUNDLE_IDENTIFIER: dev.bouncei.TimeZones.Widget
         PRODUCT_NAME: TimeZonesWidget
         INFOPLIST_FILE: TimeZonesWidget/Info.plist
         CODE_SIGN_ENTITLEMENTS: TimeZonesWidget/TimeZonesWidget.entitlements
@@ -59,7 +59,7 @@ targets:
       - path: TimeZonesKitTests
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.joshuainyang.TimeZonesKitTests
+        PRODUCT_BUNDLE_IDENTIFIER: dev.bouncei.TimeZonesKitTests
         GENERATE_INFOPLIST_FILE: YES
 
 schemes:

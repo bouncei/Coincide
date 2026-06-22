@@ -35,7 +35,7 @@ Native SwiftUI. One Xcode project, three targets:
 | `TimeZonesKit` *(shared sources)* | — | Models, store, formatting (compiled into both, plus the test target) |
 
 App and widget share state through an **App Group**
-(`group.com.joshuainyang.timezones`) backed by a single JSON blob in
+(`group.dev.bouncei.timezones`) backed by a single JSON blob in
 `UserDefaults`. Time math lives in pure, unit-tested helpers in `TimeFormatting`.
 
 ```
@@ -82,8 +82,8 @@ runtime). To submit you need a **paid Apple Developer Program** membership:
 
 1. Set `DEVELOPMENT_TEAM` in `project.yml` (or pick your team in Xcode) and run
    `xcodegen generate`.
-2. Register the App Group `group.com.joshuainyang.timezones` and both bundle IDs
-   (`com.joshuainyang.TimeZones`, `com.joshuainyang.TimeZones.Widget`) on the
+2. Register the App Group `group.dev.bouncei.timezones` and both bundle IDs
+   (`dev.bouncei.TimeZones`, `dev.bouncei.TimeZones.Widget`) on the
    Developer portal — or let Xcode's automatic signing create them.
 3. **Product → Archive → Validate App**, then distribute.
 

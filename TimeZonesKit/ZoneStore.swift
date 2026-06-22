@@ -42,7 +42,7 @@ extension StoreState {
 /// `loadSnapshot`. Persistence is a single JSON blob in the App Group's
 /// `UserDefaults` suite so both processes always agree.
 final class ZoneStore: ObservableObject {
-    static let appGroupID = "group.com.joshuainyang.timezones"
+    static let appGroupID = "group.dev.bouncei.timezones"
     static let stateKey = "state.v1"
 
     @Published private(set) var zones: [SavedZone]
