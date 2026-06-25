@@ -40,7 +40,7 @@ struct OnboardingView: View {
             Image(systemName: "clock.badge.checkmark")
                 .font(.system(size: 56, weight: .light))
                 .foregroundStyle(.tint)
-            Text("Welcome to TimeZones")
+            Text("Welcome to Coincide")
                 .font(.system(size: 24, weight: .bold))
             Text("Keep your home time and the zones you work with side by side — in your menu bar and as a widget — so you never miscount the hours again.")
                 .font(.system(size: 13))

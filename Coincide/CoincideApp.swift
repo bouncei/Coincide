@@ -5,7 +5,7 @@ enum WindowID {
 }
 
 @main
-struct TimeZonesApp: App {
+struct CoincideApp: App {
     @StateObject private var store = ZoneStore()
 
     var body: some Scene {
@@ -18,7 +18,7 @@ struct TimeZonesApp: App {
         .menuBarExtraStyle(.window)
 
         // Single window reused for onboarding (first launch) and settings.
-        Window("TimeZones", id: WindowID.main) {
+        Window("Coincide", id: WindowID.main) {
             RootWindowView()
                 .environmentObject(store)
         }

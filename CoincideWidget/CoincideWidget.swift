@@ -2,21 +2,21 @@ import WidgetKit
 import SwiftUI
 
 @main
-struct TimeZonesWidgetBundle: WidgetBundle {
+struct CoincideWidgetBundle: WidgetBundle {
     var body: some Widget {
-        TimeZonesWidget()
+        CoincideWidget()
     }
 }
 
-struct TimeZonesWidget: Widget {
-    let kind = "TimeZonesWidget"
+struct CoincideWidget: Widget {
+    let kind = "CoincideWidget"
 
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: ZoneTimelineProvider()) { entry in
             WidgetEntryView(entry: entry)
                 .containerBackground(.fill.tertiary, for: .widget)
         }
-        .configurationDisplayName("Time Zones")
+        .configurationDisplayName("Coincide")
         .description("See the current time across the zones you track.")
         .supportedFamilies([.systemSmall, .systemMedium])
     }

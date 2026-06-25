@@ -35,7 +35,7 @@ struct PopoverView: View {
 
     private var header: some View {
         HStack {
-            Text("Time Zones")
+            Text("Coincide")
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundStyle(.secondary)
             Spacer()

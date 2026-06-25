@@ -1,4 +1,4 @@
-name: TimeZones
+name: Coincide
 options:
   bundleIdPrefix: dev.bouncei
   deploymentTarget:
@@ -16,63 +16,63 @@ settings:
     ENABLE_HARDENED_RUNTIME: YES
 
 targets:
-  TimeZones:
+  Coincide:
     type: application
     platform: macOS
     sources:
-      - path: TimeZones
-      - path: TimeZonesKit
+      - path: Coincide
+      - path: CoincideKit
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: dev.bouncei.TimeZones
-        PRODUCT_NAME: TimeZones
-        CODE_SIGN_ENTITLEMENTS: TimeZones/TimeZones.entitlements
+        PRODUCT_BUNDLE_IDENTIFIER: dev.bouncei.Coincide
+        PRODUCT_NAME: Coincide
+        CODE_SIGN_ENTITLEMENTS: Coincide/Coincide.entitlements
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_LSUIElement: YES
-        INFOPLIST_KEY_CFBundleDisplayName: TimeZones
+        INFOPLIST_KEY_CFBundleDisplayName: Coincide
         INFOPLIST_KEY_NSHumanReadableCopyright: "© 2026"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         COMBINE_HIDPI_IMAGES: YES
     dependencies:
-      - target: TimeZonesWidget
+      - target: CoincideWidget
 
-  TimeZonesWidget:
+  CoincideWidget:
     type: app-extension
     platform: macOS
     sources:
-      - path: TimeZonesWidget
-      - path: TimeZonesKit
+      - path: CoincideWidget
+      - path: CoincideKit
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: dev.bouncei.TimeZones.Widget
-        PRODUCT_NAME: TimeZonesWidget
-        INFOPLIST_FILE: TimeZonesWidget/Info.plist
-        CODE_SIGN_ENTITLEMENTS: TimeZonesWidget/TimeZonesWidget.entitlements
+        PRODUCT_BUNDLE_IDENTIFIER: dev.bouncei.Coincide.Widget
+        PRODUCT_NAME: CoincideWidget
+        INFOPLIST_FILE: CoincideWidget/Info.plist
+        CODE_SIGN_ENTITLEMENTS: CoincideWidget/CoincideWidget.entitlements
         SKIP_INSTALL: YES
 
-  TimeZonesKitTests:
+  CoincideKitTests:
     type: bundle.unit-test
     platform: macOS
     sources:
-      - path: TimeZonesKit
-      - path: TimeZonesKitTests
+      - path: CoincideKit
+      - path: CoincideKitTests
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: dev.bouncei.TimeZonesKitTests
+        PRODUCT_BUNDLE_IDENTIFIER: dev.bouncei.CoincideKitTests
         GENERATE_INFOPLIST_FILE: YES
 
 schemes:
-  TimeZones:
+  Coincide:
     build:
       targets:
-        TimeZones: all
-        TimeZonesWidget: all
+        Coincide: all
+        CoincideWidget: all
     run:
       config: Debug
     test:
       config: Debug
       targets:
-        - TimeZonesKitTests
+        - CoincideKitTests
     archive:
       config: Release

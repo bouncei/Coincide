@@ -8,7 +8,7 @@ xcuserdata/
 .swiftpm/
 
 # XcodeGen generates the project from project.yml — don't commit it.
-TimeZones.xcodeproj/
+Coincide.xcodeproj/
 
 # macOS
 .DS_Store

@@ -6,7 +6,7 @@
 	<true/>
 	<key>com.apple.security.application-groups</key>
 	<array>
-		<string>group.dev.bouncei.timezones</string>
+		<string>group.dev.bouncei.coincide</string>
 	</array>
 </dict>
 </plist>

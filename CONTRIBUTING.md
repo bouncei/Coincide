@@ -1,6 +1,6 @@
-# Contributing to TimeZones
+# Contributing to Coincide
 
-Thanks for your interest in improving TimeZones! This is a small, focused app —
+Thanks for your interest in improving Coincide! This is a small, focused app —
 contributions that keep it minimal and native are very welcome.
 
 ## Getting set up
@@ -8,7 +8,7 @@ contributions that keep it minimal and native are very welcome.
 ```bash
 brew install xcodegen
 xcodegen generate
-open TimeZones.xcodeproj
+open Coincide.xcodeproj
 ```
 
 The `.xcodeproj` is generated and git-ignored. **Never edit it by hand** — make
@@ -19,13 +19,13 @@ project/target/build-setting changes in [`project.yml`](project.yml) and re-run
 
 1. **Run the tests** — they must pass:
    ```bash
-   xcodebuild test -scheme TimeZones -destination 'platform=macOS' \
-     -only-testing:TimeZonesKitTests CODE_SIGNING_ALLOWED=NO
+   xcodebuild test -scheme Coincide -destination 'platform=macOS' \
+     -only-testing:CoincideKitTests CODE_SIGNING_ALLOWED=NO
    ```
 2. **Add tests** for any new time/zone logic. The interesting logic lives in
-   `TimeZonesKit/TimeFormatting.swift` and `ZoneStore.swift`, both pure and
+   `CoincideKit/TimeFormatting.swift` and `ZoneStore.swift`, both pure and
    easily testable — keep it that way.
-3. **Keep UI logic out of the kit.** `TimeZonesKit` has no SwiftUI/WidgetKit UI
+3. **Keep UI logic out of the kit.** `CoincideKit` has no SwiftUI/WidgetKit UI
    so it can compile into the app, the widget, and the tests.
 4. Match the existing style: small files, clear names, comments only where the
    *why* isn't obvious.

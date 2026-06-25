@@ -156,7 +156,7 @@ struct SettingsView: View {
     private var aboutSection: some View {
         Section("About") {
             LabeledContent("Version", value: appVersion)
-            Link("View on GitHub", destination: URL(string: "https://github.com/joshuainyang/TimeZones")!)
+            Link("View on GitHub", destination: URL(string: "https://github.com/bouncei/Coincide")!)
         }
     }
 

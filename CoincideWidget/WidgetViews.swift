@@ -97,7 +97,7 @@ private struct EmptyWidgetView: View {
     var body: some View {
         VStack(spacing: 6) {
             Image(systemName: "globe").font(.system(size: 22)).foregroundStyle(.tertiary)
-            Text("Open TimeZones to add zones")
+            Text("Open Coincide to add zones")
                 .font(.system(size: 11))
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)

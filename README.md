@@ -1,8 +1,8 @@
-# TimeZones
+# Coincide
 
-A minimalist macOS **menu bar app + widget** that keeps your home time and the
-zones you work with side by side — so remote workers never miscount the hours
-or miss a meeting again.
+**See when your hours line up.** A minimalist macOS **menu bar app + widget**
+that keeps your home time and the zones you work with side by side — so remote
+workers never miscount the hours or miss a meeting again.
 
 Built for the very common remote-work problem: *"It's 4pm here — what time is it
 for my team in PST? Have they already gone home? Is it tomorrow there yet?"*
@@ -30,19 +30,19 @@ Native SwiftUI. One Xcode project, three targets:
 
 | Target | Type | Purpose |
 | --- | --- | --- |
-| `TimeZones` | macOS app | `MenuBarExtra` + onboarding/settings window |
-| `TimeZonesWidget` | Widget extension | Small/medium WidgetKit widgets |
-| `TimeZonesKit` *(shared sources)* | — | Models, store, formatting (compiled into both, plus the test target) |
+| `Coincide` | macOS app | `MenuBarExtra` + onboarding/settings window |
+| `CoincideWidget` | Widget extension | Small/medium WidgetKit widgets |
+| `CoincideKit` *(shared sources)* | — | Models, store, formatting (compiled into both, plus the test target) |
 
 App and widget share state through an **App Group**
-(`group.dev.bouncei.timezones`) backed by a single JSON blob in
+(`group.dev.bouncei.coincide`) backed by a single JSON blob in
 `UserDefaults`. Time math lives in pure, unit-tested helpers in `TimeFormatting`.
 
 ```
-TimeZonesKit/      SavedZone, ZoneStore, TimeFormatting, TimezoneCatalog
-TimeZones/         App, MenuBar/, Onboarding/, Settings/, Resources/
-TimeZonesWidget/   WidgetBundle, TimelineProvider, views
-TimeZonesKitTests/ Formatting + store unit tests
+CoincideKit/      SavedZone, ZoneStore, TimeFormatting, TimezoneCatalog
+Coincide/         App, MenuBar/, Onboarding/, Settings/, Resources/
+CoincideWidget/   WidgetBundle, TimelineProvider, views
+CoincideKitTests/ Formatting + store unit tests
 ```
 
 ## Build & run
@@ -58,21 +58,21 @@ brew install xcodegen
 xcodegen generate
 
 # 3. Open it
-open TimeZones.xcodeproj
+open Coincide.xcodeproj
 ```
 
-In Xcode, select the `TimeZones` target → **Signing & Capabilities** → choose
+In Xcode, select the `Coincide` target → **Signing & Capabilities** → choose
 your **Team** (a free personal Apple ID works for local runs), then ⌘R.
 
 ### Command line
 
 ```bash
 # Run the unit tests (no signing required)
-xcodebuild test -scheme TimeZones -destination 'platform=macOS' \
-  -only-testing:TimeZonesKitTests CODE_SIGNING_ALLOWED=NO
+xcodebuild test -scheme Coincide -destination 'platform=macOS' \
+  -only-testing:CoincideKitTests CODE_SIGNING_ALLOWED=NO
 
 # Compile everything
-xcodebuild build -scheme TimeZones -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO
+xcodebuild build -scheme Coincide -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO
 ```
 
 ## Shipping to the App Store
@@ -82,10 +82,14 @@ runtime). To submit you need a **paid Apple Developer Program** membership:
 
 1. Set `DEVELOPMENT_TEAM` in `project.yml` (or pick your team in Xcode) and run
    `xcodegen generate`.
-2. Register the App Group `group.dev.bouncei.timezones` and both bundle IDs
-   (`dev.bouncei.TimeZones`, `dev.bouncei.TimeZones.Widget`) on the
+2. Register the App Group `group.dev.bouncei.coincide` and both bundle IDs
+   (`dev.bouncei.Coincide`, `dev.bouncei.Coincide.Widget`) on the
    Developer portal — or let Xcode's automatic signing create them.
-3. **Product → Archive → Validate App**, then distribute.
+3. Reserve the **App Store listing name** in App Store Connect. The bare name
+   "Coincide" is already used by another app, so reserve a qualified name such
+   as **"Coincide – Time Zones"** (this only affects the store listing — the app,
+   bundle ID, and branding stay "Coincide").
+4. **Product → Archive → Validate App**, then distribute.
 
 > Forking? Change the bundle ID prefix and App Group to your own reverse-DNS
 > domain in `project.yml` and the two `*.entitlements` files.
