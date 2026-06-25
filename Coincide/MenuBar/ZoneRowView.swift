@@ -1,7 +1,8 @@
 import SwiftUI
 
-/// One zone row inside the menu bar popover: flag avatar, name + country,
-/// large current time, a day/night glyph, and a day-offset tag.
+/// One zone row inside the menu bar popover: flag, name + country, large
+/// current time, a day/night glyph, and a day-offset tag. Flat & airy — no
+/// row background; home is marked by an accent house glyph only.
 struct ZoneRowView: View {
     @EnvironmentObject var store: ZoneStore
     let zone: SavedZone
@@ -16,13 +17,14 @@ struct ZoneRowView: View {
     }
 
     var body: some View {
-        HStack(spacing: 11) {
-            flagAvatar
+        HStack(spacing: Theme.avatarGap) {
+            Text(zone.flag)
+                .font(.system(size: 22))
 
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 5) {
                     Text(zone.displayName)
-                        .font(.system(size: 13.5, weight: .semibold))
+                        .font(.system(size: Theme.FontSize.rowName, weight: .semibold))
                         .lineLimit(1)
                     if isHome {
                         Image(systemName: "house.fill")
@@ -36,33 +38,32 @@ struct ZoneRowView: View {
                     }
                 }
                 Text(subtitle)
-                    .font(.system(size: 11))
+                    .font(.system(size: Theme.FontSize.meta))
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
             }
 
-            Spacer(minLength: 6)
+            Spacer(minLength: 8)
 
             VStack(alignment: .trailing, spacing: 2) {
                 Text(TimeFormatting.time(in: zone.timeZone, at: now, format: store.hourFormat))
-                    .font(.system(size: 18, weight: .semibold, design: .rounded))
+                    .font(.system(size: Theme.FontSize.time, weight: .medium, design: .rounded))
                     .monospacedDigit()
                 HStack(spacing: 4) {
                     Image(systemName: phase.symbol)
                         .font(.system(size: 9))
-                        .foregroundStyle(phaseColor)
+                        .foregroundStyle(phase.glyphColor)
                         .symbolRenderingMode(.hierarchical)
                     if let dayLabel {
                         Text(dayLabel)
-                            .font(.system(size: 10, weight: .semibold))
-                            .foregroundStyle(dayLabel == "Yesterday" ? AnyShapeStyle(.secondary) : AnyShapeStyle(Color.orange))
+                            .font(.system(size: Theme.FontSize.tag, weight: .semibold))
+                            .foregroundStyle(dayLabel == "Yesterday" ? AnyShapeStyle(.secondary) : AnyShapeStyle(.tint))
                     }
                 }
             }
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 9)
-        .background(isHome ? Color.accentColor.opacity(0.07) : Color.clear)
+        .padding(.horizontal, Theme.gutter)
+        .padding(.vertical, Theme.rowVPad)
         .contentShape(Rectangle())
         .contextMenu {
             Button("Show in Menu Bar") { store.setReference(zone) }.disabled(isReference)
@@ -72,33 +73,12 @@ struct ZoneRowView: View {
         }
     }
 
-    private var flagAvatar: some View {
-        Text(zone.flag)
-            .font(.system(size: 20))
-            .frame(width: 34, height: 34)
-            .background(.quaternary.opacity(0.6), in: RoundedRectangle(cornerRadius: 9, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 9, style: .continuous)
-                    .strokeBorder(.white.opacity(0.08))
-            )
-    }
-
-    /// "Los Angeles, United States · GMT-7" (city omitted when it equals the
-    /// country, e.g. "Singapore · GMT+8").
+    /// "Los Angeles, United States · GMT-7" (city only when it equals country).
     private var subtitle: String {
         let offset = TimeFormatting.gmtOffsetLabel(for: zone.timeZone, at: now)
         if let country = zone.countryName, country != zone.cityName {
             return "\(zone.cityName), \(country) · \(offset)"
         }
         return "\(zone.cityName) · \(offset)"
-    }
-
-    private var phaseColor: Color {
-        switch phase {
-        case .morning: return .orange
-        case .day:     return .yellow
-        case .evening: return .pink
-        case .night:   return .indigo
-        }
     }
 }

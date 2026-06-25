@@ -17,21 +17,21 @@ struct PopoverView: View {
                 emptyState
             } else {
                 ScrollView {
-                    LazyVStack(spacing: 0) {
-                        ForEach(Array(store.displayZones.enumerated()), id: \.element.id) { index, zone in
-                            if index > 0 { Divider().padding(.leading, 14) }
+                    LazyVStack(spacing: 2) {
+                        ForEach(store.displayZones) { zone in
                             ZoneRowView(zone: zone, now: clock.now)
                                 .environmentObject(store)
                         }
                     }
+                    .padding(.vertical, 4)
                 }
-                .frame(maxHeight: 360)
+                .frame(maxHeight: 380)
             }
 
             Divider()
             footer
         }
-        .frame(width: 320)
+        .frame(width: Theme.popoverWidth)
     }
 
     /// Opens the settings/onboarding window and brings it to the front (needed

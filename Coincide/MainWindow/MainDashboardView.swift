@@ -254,7 +254,7 @@ private struct DashboardRow: View {
                 if let dayLabel {
                     Text(dayLabel)
                         .font(.system(size: 9, weight: .semibold))
-                        .foregroundStyle(dayLabel == "Yesterday" ? AnyShapeStyle(.secondary) : AnyShapeStyle(Color.orange))
+                        .foregroundStyle(dayLabel == "Yesterday" ? AnyShapeStyle(.secondary) : AnyShapeStyle(.tint))
                 }
             }
             .frame(width: timeWidth, alignment: .trailing)
@@ -267,11 +267,11 @@ private struct DashboardRow: View {
         HStack(spacing: 1) {
             ForEach(0..<24, id: \.self) { hour in
                 let phase = DayPhase.current(in: zone.timeZone, at: dayStart.addingTimeInterval(Double(hour) * 3600))
-                Rectangle().fill(Self.color(for: phase))
+                Rectangle().fill(phase.bandColor)
             }
         }
-        .frame(height: 24)
-        .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+        .frame(height: 22)
+        .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
         .overlay(alignment: .leading) {
             GeometryReader { geo in
                 Rectangle()
@@ -280,16 +280,6 @@ private struct DashboardRow: View {
                     .shadow(color: .black.opacity(0.4), radius: 1.5)
                     .offset(x: fraction * geo.size.width - 1)
             }
-        }
-        .overlay(RoundedRectangle(cornerRadius: 6, style: .continuous).strokeBorder(.white.opacity(0.06)))
-    }
-
-    static func color(for phase: DayPhase) -> Color {
-        switch phase {
-        case .night:   return Color(red: 0.18, green: 0.20, blue: 0.45).opacity(0.92)
-        case .morning: return Color.orange.opacity(0.55)
-        case .day:     return Color.yellow.opacity(0.65)
-        case .evening: return Color.pink.opacity(0.55)
         }
     }
 }

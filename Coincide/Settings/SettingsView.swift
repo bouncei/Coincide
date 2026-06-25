@@ -31,9 +31,8 @@ struct SettingsView: View {
             ForEach(Array(store.zones.enumerated()), id: \.element.id) { index, zone in
                 HStack(spacing: 10) {
                     Text(zone.flag)
-                        .font(.system(size: 18))
-                        .frame(width: 28, height: 28)
-                        .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 7, style: .continuous))
+                        .font(.system(size: 20))
+                        .frame(width: 28)
                     VStack(alignment: .leading, spacing: 1) {
                         HStack(spacing: 5) {
                             Text(zone.displayName).font(.system(size: 13, weight: .medium))
