@@ -6,6 +6,12 @@ struct CatalogZone: Identifiable, Hashable {
     var identifier: String { id }
     var city: String { SavedZone.cityName(for: id) }
     var region: String { SavedZone.region(for: id) }
+    var countryCode: String? { TimezoneCountries.codeByZone[id] }
+    var countryName: String? {
+        guard let code = countryCode else { return nil }
+        return Locale.current.localizedString(forRegionCode: code)
+    }
+    var flag: String { SavedZone.flag(for: countryCode) }
 }
 
 /// The full IANA catalog plus a curated "Common" shortlist. The picker is not

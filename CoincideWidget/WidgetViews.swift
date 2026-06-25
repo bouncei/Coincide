@@ -25,10 +25,13 @@ private struct SmallWidgetView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             if let zone {
-                Text(zone.displayName)
-                    .font(.system(size: 13, weight: .semibold))
-                    .lineLimit(1)
-                Text(zone.cityName)
+                HStack(spacing: 5) {
+                    Text(zone.flag).font(.system(size: 18))
+                    Text(zone.displayName)
+                        .font(.system(size: 13, weight: .semibold))
+                        .lineLimit(1)
+                }
+                Text(zone.countryName ?? zone.cityName)
                     .font(.system(size: 11))
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
@@ -65,12 +68,13 @@ private struct MediumWidgetView: View {
             ForEach(zones) { zone in
                 VStack(alignment: .leading, spacing: 1) {
                     HStack(spacing: 4) {
-                        if entry.state.homeZone?.id == zone.id {
-                            Image(systemName: "house.fill").font(.system(size: 9)).foregroundStyle(.tint)
-                        }
+                        Text(zone.flag).font(.system(size: 13))
                         Text(zone.displayName)
                             .font(.system(size: 12, weight: .semibold))
                             .lineLimit(1)
+                        if entry.state.homeZone?.id == zone.id {
+                            Image(systemName: "house.fill").font(.system(size: 8)).foregroundStyle(.tint)
+                        }
                     }
                     Text(TimeFormatting.time(in: zone.timeZone, at: entry.date, format: entry.state.hourFormat))
                         .font(.system(size: 20, weight: .medium, design: .rounded))

@@ -28,8 +28,7 @@ struct MenuBarLabelView: View {
     private var content: some View {
         if let ref = store.referenceZone {
             let time = TimeFormatting.time(in: ref.timeZone, at: clock.now, format: store.hourFormat)
-            let abbr = TimeFormatting.abbreviation(for: ref.timeZone, at: clock.now)
-            Text("\(abbr) \(time)")
+            Text("\(ref.flag) \(time)")
         } else {
             Image(systemName: "clock")
         }

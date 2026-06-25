@@ -118,6 +118,18 @@ final class ZoneStore: ObservableObject {
         persist()
     }
 
+    func moveUp(_ zone: SavedZone) {
+        guard let i = zones.firstIndex(where: { $0.id == zone.id }), i > 0 else { return }
+        zones.swapAt(i, i - 1)
+        persist()
+    }
+
+    func moveDown(_ zone: SavedZone) {
+        guard let i = zones.firstIndex(where: { $0.id == zone.id }), i < zones.count - 1 else { return }
+        zones.swapAt(i, i + 1)
+        persist()
+    }
+
     func setHome(_ zone: SavedZone) {
         homeZoneID = zone.id
         persist()

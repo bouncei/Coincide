@@ -19,12 +19,19 @@ struct CoincideApp: App {
         }
         .menuBarExtraStyle(.window)
 
-        // Single window reused for onboarding (first launch) and settings.
+        // Main window: onboarding on first launch, then the dashboard.
         Window("Coincide", id: WindowID.main) {
             RootWindowView()
                 .environmentObject(store)
+                .environmentObject(clock)
         }
-        .windowResizability(.contentSize)
+        .windowResizability(.contentMinSize)
         .defaultPosition(.center)
+
+        // Standard Preferences window (⌘,).
+        Settings {
+            SettingsView()
+                .environmentObject(store)
+        }
     }
 }

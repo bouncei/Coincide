@@ -64,9 +64,12 @@ struct ZonePickerView: View {
             toggle(zone.id)
         } label: {
             HStack(spacing: 10) {
+                Text(zone.flag)
+                    .font(.system(size: 18))
+                    .frame(width: 26)
                 VStack(alignment: .leading, spacing: 1) {
                     Text(zone.city).font(.system(size: 13))
-                    Text("\(zone.region)  ·  \(TimeFormatting.gmtOffsetLabel(for: tz))")
+                    Text("\(zone.countryName ?? zone.region)  ·  \(TimeFormatting.gmtOffsetLabel(for: tz))")
                         .font(.system(size: 11))
                         .foregroundStyle(.secondary)
                 }

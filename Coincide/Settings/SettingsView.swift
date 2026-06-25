@@ -28,21 +28,31 @@ struct SettingsView: View {
 
     private var zonesSection: some View {
         Section {
-            ForEach(store.displayZones) { zone in
+            ForEach(Array(store.zones.enumerated()), id: \.element.id) { index, zone in
                 HStack(spacing: 10) {
-                    Image(systemName: store.isHome(zone) ? "house.fill" : "globe")
-                        .foregroundStyle(store.isHome(zone) ? AnyShapeStyle(.tint) : AnyShapeStyle(.secondary))
-                        .frame(width: 18)
+                    Text(zone.flag)
+                        .font(.system(size: 18))
+                        .frame(width: 28, height: 28)
+                        .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 7, style: .continuous))
                     VStack(alignment: .leading, spacing: 1) {
-                        Text(zone.displayName).font(.system(size: 13, weight: .medium))
-                        Text("\(zone.tzIdentifier)  ·  \(TimeFormatting.gmtOffsetLabel(for: zone.timeZone))")
+                        HStack(spacing: 5) {
+                            Text(zone.displayName).font(.system(size: 13, weight: .medium))
+                            if store.isHome(zone) {
+                                Image(systemName: "house.fill").font(.system(size: 8)).foregroundStyle(.tint)
+                            }
+                            if store.isReference(zone) {
+                                Image(systemName: "menubar.rectangle").font(.system(size: 8)).foregroundStyle(.secondary)
+                                    .help("Shown in the menu bar")
+                            }
+                        }
+                        Text(subtitle(for: zone))
                             .font(.system(size: 11)).foregroundStyle(.secondary)
                     }
                     Spacer()
-                    if store.isReference(zone) {
-                        Image(systemName: "menubar.rectangle").foregroundStyle(.tint).help("Shown in the menu bar")
-                    }
                     Menu {
+                        Button("Move Up") { store.moveUp(zone) }.disabled(index == 0)
+                        Button("Move Down") { store.moveDown(zone) }.disabled(index == store.zones.count - 1)
+                        Divider()
                         Button("Rename…") { renaming = zone; renameText = zone.displayName }
                         Button("Show in Menu Bar") { store.setReference(zone) }.disabled(store.isReference(zone))
                         Button("Set as Home") { store.setHome(zone) }.disabled(store.isHome(zone))
@@ -67,7 +77,7 @@ struct SettingsView: View {
         } header: {
             Text("Your Time Zones")
         } footer: {
-            Text("Drag to reorder. Home is always shown first.")
+            Text("Drag a row, or use ⋯ → Move Up / Move Down, to reorder.")
         }
         .alert("Rename Zone", isPresented: Binding(get: { renaming != nil }, set: { if !$0 { renaming = nil } })) {
             TextField("Name", text: $renameText)
@@ -112,9 +122,18 @@ struct SettingsView: View {
                 get: { store.referenceZone?.id },
                 set: { id in if let z = store.zones.first(where: { $0.id == id }) { store.setReference(z) } }
             )) {
-                ForEach(store.displayZones) { Text($0.displayName).tag(Optional($0.id)) }
+                ForEach(store.displayZones) { Text("\($0.flag)  \($0.displayName)").tag(Optional($0.id)) }
             }
         }
+    }
+
+    /// "Los Angeles, United States · GMT-7".
+    private func subtitle(for zone: SavedZone) -> String {
+        let offset = TimeFormatting.gmtOffsetLabel(for: zone.timeZone)
+        if let country = zone.countryName, country != zone.cityName {
+            return "\(zone.cityName), \(country) · \(offset)"
+        }
+        return "\(zone.cityName) · \(offset)"
     }
 
     // MARK: Appearance

@@ -6,6 +6,7 @@ struct PopoverView: View {
     @EnvironmentObject var store: ZoneStore
     @EnvironmentObject var clock: MinuteClock
     @Environment(\.openWindow) private var openWindow
+    @Environment(\.openSettings) private var openSettings
 
     var body: some View {
         VStack(spacing: 0) {
@@ -30,7 +31,7 @@ struct PopoverView: View {
             Divider()
             footer
         }
-        .frame(width: 300)
+        .frame(width: 320)
     }
 
     /// Opens the settings/onboarding window and brings it to the front (needed
@@ -42,13 +43,30 @@ struct PopoverView: View {
     }
 
     private var header: some View {
-        HStack {
-            Text("Coincide")
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(.secondary)
+        HStack(spacing: 8) {
+            Image(systemName: "globe")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(.tint)
+            VStack(alignment: .leading, spacing: 0) {
+                Text("Coincide")
+                    .font(.system(size: 13, weight: .bold))
+                if let home = store.homeZone {
+                    Text(homeDateLine(home))
+                        .font(.system(size: 10))
+                        .foregroundStyle(.secondary)
+                }
+            }
             Spacer()
             Button {
                 openMainWindow()
+            } label: {
+                Image(systemName: "macwindow")
+            }
+            .buttonStyle(.borderless)
+            .help("Open Coincide")
+            Button {
+                NSApp.activate(ignoringOtherApps: true)
+                openSettings()
             } label: {
                 Image(systemName: "gearshape")
             }
@@ -57,6 +75,15 @@ struct PopoverView: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
+    }
+
+    /// e.g. "Today in Lagos · Mon 22 Jun".
+    private func homeDateLine(_ home: SavedZone) -> String {
+        let df = DateFormatter()
+        df.timeZone = home.timeZone
+        df.locale = .current
+        df.dateFormat = "EEE d MMM"
+        return "Today in \(home.cityName) · \(df.string(from: clock.now))"
     }
 
     private var footer: some View {

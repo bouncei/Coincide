@@ -56,10 +56,14 @@ struct OnboardingView: View {
             stepHeader("Your home time zone",
                        "We detected this from your Mac. Change it if it's wrong.")
             HStack(spacing: 10) {
-                Image(systemName: "house.fill").foregroundStyle(.tint)
+                Text(SavedZone.flag(for: TimezoneCountries.codeByZone[homeID]))
+                    .font(.system(size: 26))
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(SavedZone.cityName(for: homeID)).font(.system(size: 15, weight: .semibold))
-                    Text("\(homeID)  ·  \(TimeFormatting.gmtOffsetLabel(for: TimeZone(identifier: homeID) ?? .current))")
+                    HStack(spacing: 5) {
+                        Text(SavedZone.cityName(for: homeID)).font(.system(size: 15, weight: .semibold))
+                        Image(systemName: "house.fill").font(.system(size: 9)).foregroundStyle(.tint)
+                    }
+                    Text("\(SavedZone(tzIdentifier: homeID).countryName ?? homeID)  ·  \(TimeFormatting.gmtOffsetLabel(for: TimeZone(identifier: homeID) ?? .current))")
                         .font(.system(size: 12)).foregroundStyle(.secondary)
                 }
                 Spacer()
@@ -147,13 +151,14 @@ struct OnboardingView: View {
     }
 
     private func finish() {
+        // Writing the store flips `didCompleteOnboarding`, so the window's
+        // RootWindowView swaps straight to the dashboard — no dismiss needed.
         store.finishOnboarding(
             homeIdentifier: homeID,
             otherIdentifiers: Array(otherIDs),
             referenceIdentifier: referenceID,
             hourFormat: hourFormat
         )
-        dismiss()
     }
 }
 
