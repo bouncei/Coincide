@@ -1,8 +1,10 @@
 import SwiftUI
+import AppKit
 
 /// The dropdown shown when the menu bar item is clicked.
 struct PopoverView: View {
     @EnvironmentObject var store: ZoneStore
+    @EnvironmentObject var clock: MinuteClock
     @Environment(\.openWindow) private var openWindow
 
     var body: some View {
@@ -13,24 +15,30 @@ struct PopoverView: View {
             if store.zones.isEmpty {
                 emptyState
             } else {
-                TimelineView(.everyMinute) { context in
-                    ScrollView {
-                        LazyVStack(spacing: 0) {
-                            ForEach(Array(store.displayZones.enumerated()), id: \.element.id) { index, zone in
-                                if index > 0 { Divider().padding(.leading, 14) }
-                                ZoneRowView(zone: zone, now: context.date)
-                                    .environmentObject(store)
-                            }
+                ScrollView {
+                    LazyVStack(spacing: 0) {
+                        ForEach(Array(store.displayZones.enumerated()), id: \.element.id) { index, zone in
+                            if index > 0 { Divider().padding(.leading, 14) }
+                            ZoneRowView(zone: zone, now: clock.now)
+                                .environmentObject(store)
                         }
                     }
-                    .frame(maxHeight: 360)
                 }
+                .frame(maxHeight: 360)
             }
 
             Divider()
             footer
         }
         .frame(width: 300)
+    }
+
+    /// Opens the settings/onboarding window and brings it to the front (needed
+    /// for a menu-bar / accessory app, which otherwise opens windows behind
+    /// whatever is focused).
+    private func openMainWindow() {
+        NSApp.activate(ignoringOtherApps: true)
+        openWindow(id: WindowID.main)
     }
 
     private var header: some View {
@@ -40,7 +48,7 @@ struct PopoverView: View {
                 .foregroundStyle(.secondary)
             Spacer()
             Button {
-                openWindow(id: WindowID.main)
+                openMainWindow()
             } label: {
                 Image(systemName: "gearshape")
             }
@@ -53,11 +61,9 @@ struct PopoverView: View {
 
     private var footer: some View {
         HStack {
-            TimelineView(.everyMinute) { context in
-                Text("Updated \(TimeFormatting.time(in: .current, at: context.date, format: store.hourFormat))")
-                    .font(.system(size: 10))
-                    .foregroundStyle(.tertiary)
-            }
+            Text("Updated \(TimeFormatting.time(in: .current, at: clock.now, format: store.hourFormat))")
+                .font(.system(size: 10))
+                .foregroundStyle(.tertiary)
             Spacer()
             Button("Quit") { NSApplication.shared.terminate(nil) }
                 .buttonStyle(.borderless)
@@ -79,7 +85,7 @@ struct PopoverView: View {
                 .font(.system(size: 11))
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
-            Button("Set Up") { openWindow(id: WindowID.main) }
+            Button("Set Up") { openMainWindow() }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.small)
         }

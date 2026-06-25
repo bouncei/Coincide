@@ -1,10 +1,16 @@
 import SwiftUI
+import AppKit
 
 /// The always-visible menu bar item. Shows the reference zone's abbreviation
-/// and time (e.g. "PDT 2:30 PM"), refreshing every minute. Falls back to a
-/// clock glyph until the user has set up at least one zone.
+/// and time (e.g. "PDT 2:30 PM"), refreshing every minute via `MinuteClock`.
+/// Falls back to a clock glyph until the user has set up at least one zone.
+///
+/// IMPORTANT: this view must NOT use `TimelineView` — inside a `MenuBarExtra`
+/// label that triggers an infinite status-item re-layout loop. The per-minute
+/// refresh comes from `MinuteClock` instead.
 struct MenuBarLabelView: View {
     @ObservedObject var store: ZoneStore
+    @ObservedObject var clock: MinuteClock
     @Environment(\.openWindow) private var openWindow
 
     var body: some View {
@@ -12,6 +18,7 @@ struct MenuBarLabelView: View {
             .onAppear {
                 // Kick off onboarding the first time the app runs.
                 if !store.didCompleteOnboarding {
+                    NSApp.activate(ignoringOtherApps: true)
                     openWindow(id: WindowID.main)
                 }
             }
@@ -20,12 +27,9 @@ struct MenuBarLabelView: View {
     @ViewBuilder
     private var content: some View {
         if let ref = store.referenceZone {
-            TimelineView(.everyMinute) { context in
-                let time = TimeFormatting.time(in: ref.timeZone, at: context.date, format: store.hourFormat)
-                let abbr = TimeFormatting.abbreviation(for: ref.timeZone, at: context.date)
-                Image(systemName: "clock")
-                Text("\(abbr) \(time)")
-            }
+            let time = TimeFormatting.time(in: ref.timeZone, at: clock.now, format: store.hourFormat)
+            let abbr = TimeFormatting.abbreviation(for: ref.timeZone, at: clock.now)
+            Text("\(abbr) \(time)")
         } else {
             Image(systemName: "clock")
         }

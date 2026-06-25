@@ -7,13 +7,15 @@ enum WindowID {
 @main
 struct CoincideApp: App {
     @StateObject private var store = ZoneStore()
+    @StateObject private var clock = MinuteClock()
 
     var body: some Scene {
         MenuBarExtra {
             PopoverView()
                 .environmentObject(store)
+                .environmentObject(clock)
         } label: {
-            MenuBarLabelView(store: store)
+            MenuBarLabelView(store: store, clock: clock)
         }
         .menuBarExtraStyle(.window)
 
