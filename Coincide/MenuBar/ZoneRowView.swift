@@ -20,6 +20,7 @@ struct ZoneRowView: View {
         HStack(spacing: Theme.avatarGap) {
             Text(zone.flag)
                 .font(.system(size: 22))
+                .help(zone.countryName ?? zone.cityName)
 
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 5) {
@@ -30,11 +31,13 @@ struct ZoneRowView: View {
                         Image(systemName: "house.fill")
                             .font(.system(size: 8))
                             .foregroundStyle(.tint)
+                            .help("Home zone")
                     }
                     if isReference {
                         Image(systemName: "menubar.rectangle")
                             .font(.system(size: 8))
                             .foregroundStyle(.secondary)
+                            .help("Shown in the menu bar")
                     }
                 }
                 Text(subtitle)
@@ -54,6 +57,7 @@ struct ZoneRowView: View {
                         .font(.system(size: 9))
                         .foregroundStyle(phase.glyphColor)
                         .symbolRenderingMode(.hierarchical)
+                        .help("\(phase.label) in \(zone.cityName)")
                     if let dayLabel {
                         Text(dayLabel)
                             .font(.system(size: Theme.FontSize.tag, weight: .semibold))

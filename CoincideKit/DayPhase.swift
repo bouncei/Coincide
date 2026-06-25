@@ -20,6 +20,16 @@ enum DayPhase {
 
     var isDaytime: Bool { self != .night }
 
+    /// Human label for tooltips, e.g. "Night".
+    var label: String {
+        switch self {
+        case .morning: return "Morning"
+        case .day:     return "Daytime"
+        case .evening: return "Evening"
+        case .night:   return "Night"
+        }
+    }
+
     static func current(in timeZone: TimeZone, at date: Date) -> DayPhase {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = timeZone

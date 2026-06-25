@@ -88,9 +88,6 @@ struct PopoverView: View {
 
     private var footer: some View {
         HStack {
-            Text("Updated \(TimeFormatting.time(in: .current, at: clock.now, format: store.hourFormat))")
-                .font(.system(size: 10))
-                .foregroundStyle(.tertiary)
             Spacer()
             Button("Quit") { NSApplication.shared.terminate(nil) }
                 .buttonStyle(.borderless)
