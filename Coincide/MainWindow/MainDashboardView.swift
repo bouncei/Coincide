@@ -8,6 +8,7 @@ import AppKit
 struct MainDashboardView: View {
     @EnvironmentObject var store: ZoneStore
     @EnvironmentObject var clock: MinuteClock
+    @EnvironmentObject var calendar: CalendarService
     @Environment(\.openSettings) private var openSettings
 
     /// nil = follow the live clock; non-nil = a scrubbed instant.
@@ -42,6 +43,9 @@ struct MainDashboardView: View {
             } else {
                 readout
                 axisAndScrubber
+                if calendar.isActive {
+                    eventsLane
+                }
                 Divider().padding(.top, 4)
                 rows
             }
@@ -150,6 +154,42 @@ struct MainDashboardView: View {
 
     private func axisLabel(_ text: String) -> some View {
         Text(text).font(.system(size: 9)).foregroundStyle(.tertiary)
+    }
+
+    // MARK: Events lane
+
+    @ViewBuilder
+    private var eventsLane: some View {
+        let blocks = CalendarLogic.timelineBlocks(for: calendar.events, dayStart: dayStart)
+        HStack(spacing: 0) {
+            Spacer().frame(width: nameWidth)
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    ForEach(blocks) { block in
+                        let x = block.startFraction * geo.size.width
+                        let w = max(3, (block.endFraction - block.startFraction) * geo.size.width)
+                        RoundedRectangle(cornerRadius: 4, style: .continuous)
+                            .fill((Color(hex: block.event.calendarColorHex) ?? .accentColor).opacity(0.85))
+                            .frame(width: w, height: 16)
+                            .overlay(alignment: .leading) {
+                                Text(block.event.title)
+                                    .font(.system(size: 9, weight: .medium))
+                                    .foregroundStyle(.white)
+                                    .lineLimit(1)
+                                    .padding(.leading, 4)
+                                    .frame(width: w, alignment: .leading)
+                            }
+                            .offset(x: x)
+                            .help(block.event.title)
+                    }
+                }
+                .frame(height: 18)
+            }
+            .frame(height: 18)
+            Spacer().frame(width: timeWidth)
+        }
+        .padding(.horizontal, 16)
+        .padding(.top, 6)
     }
 
     // MARK: Rows
