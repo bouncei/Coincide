@@ -25,4 +25,24 @@ enum CalendarLogic {
         let m = minutesUntilStart(event, now: now)
         return m >= 0 && m <= withinMinutes
     }
+
+    struct EventZoneLine: Hashable {
+        let flag: String
+        let city: String
+        let time: String
+        let phaseSymbol: String
+    }
+
+    static func zoneLines(for event: CalendarEventInfo,
+                          zones: [SavedZone],
+                          format: HourFormat) -> [EventZoneLine] {
+        zones.map { zone in
+            EventZoneLine(
+                flag: zone.flag,
+                city: zone.cityName,
+                time: TimeFormatting.time(in: zone.timeZone, at: event.start, format: format),
+                phaseSymbol: DayPhase.current(in: zone.timeZone, at: event.start).symbol
+            )
+        }
+    }
 }

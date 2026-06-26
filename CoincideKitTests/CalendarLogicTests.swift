@@ -48,4 +48,21 @@ final class CalendarLogicTests: XCTestCase {
         XCTAssertTrue(CalendarLogic.isImminent(near, now: now, withinMinutes: 30))
         XCTAssertFalse(CalendarLogic.isImminent(far, now: now, withinMinutes: 30))
     }
+
+    func testZoneLinesComputeTimeAndPhasePerZone() {
+        // 2026-06-26T11:00:00Z -> Lagos 12:00 (day), New York 07:00 (morning).
+        let event = ev("standup", "2026-06-26T11:00:00Z", "2026-06-26T11:30:00Z")
+        let zones = [
+            SavedZone(tzIdentifier: "Africa/Lagos"),
+            SavedZone(tzIdentifier: "America/New_York"),
+        ]
+        let lines = CalendarLogic.zoneLines(for: event, zones: zones, format: .twentyFourHour)
+        XCTAssertEqual(lines.count, 2)
+        XCTAssertEqual(lines[0].city, "Lagos")
+        XCTAssertEqual(lines[0].time, "12:00")
+        XCTAssertEqual(lines[0].phaseSymbol, "sun.max.fill")
+        XCTAssertEqual(lines[1].city, "New York")
+        XCTAssertEqual(lines[1].time, "07:00")
+        XCTAssertEqual(lines[1].phaseSymbol, "sunrise.fill")
+    }
 }
