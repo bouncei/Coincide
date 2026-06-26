@@ -34,6 +34,11 @@ on one axis, so you can instantly spot a slot that works for everyone.
 
 <p align="center"><img src="docs/dashboard.png" width="640" alt="Coincide dashboard with time scrubber and day/night bands" /></p>
 
+**Widgets** — small and medium WidgetKit widgets for Notification Center and
+the desktop, sharing the same zones as the app.
+
+<p align="center"><img src="docs/widget.png" width="560" alt="Coincide small and medium widgets" /></p>
+
 ## Features
 
 - 🕒 **Menu bar at a glance** — your chosen reference zone's flag + time, always
