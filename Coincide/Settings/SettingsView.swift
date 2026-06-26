@@ -1,10 +1,12 @@
 import SwiftUI
+import AppKit
 import ServiceManagement
 
 /// Reopenable settings: manage zones, choose the menu bar reference, time
 /// format, launch-at-login, and About.
 struct SettingsView: View {
     @EnvironmentObject var store: ZoneStore
+    @EnvironmentObject var calendar: CalendarService
     @State private var showingAddSheet = false
     @State private var addSelection: Set<String> = []
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
@@ -16,6 +18,7 @@ struct SettingsView: View {
             zonesSection
             menuBarSection
             appearanceSection
+            calendarSection
             generalSection
             aboutSection
         }
@@ -143,6 +146,38 @@ struct SettingsView: View {
                 ForEach(HourFormat.allCases, id: \.self) { Text($0.displayName).tag($0) }
             }
             .pickerStyle(.segmented)
+        }
+    }
+
+    // MARK: Calendar
+
+    private var calendarSection: some View {
+        Section("Calendar") {
+            Toggle("Show upcoming meetings", isOn: $calendar.isEnabled)
+            if calendar.isEnabled {
+                switch calendar.access {
+                case .authorized:
+                    Label("Calendar access granted", systemImage: "checkmark.circle")
+                        .foregroundStyle(.secondary)
+                case .notDetermined:
+                    Text("Allow access when macOS asks.")
+                        .font(.system(size: 11)).foregroundStyle(.secondary)
+                case .denied:
+                    HStack {
+                        Text("Calendar access is off.")
+                            .font(.system(size: 11)).foregroundStyle(.secondary)
+                        Spacer()
+                        Button("Open System Settings") {
+                            if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Calendars") {
+                                NSWorkspace.shared.open(url)
+                            }
+                        }
+                        .controlSize(.small)
+                    }
+                }
+            }
+            Text("Events stay on your Mac — Coincide reads them locally and never sends them anywhere.")
+                .font(.system(size: 10)).foregroundStyle(.tertiary)
         }
     }
 
