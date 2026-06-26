@@ -54,7 +54,10 @@ struct MainDashboardView: View {
 
     private var toolbar: some View {
         HStack(spacing: 8) {
-            Image(systemName: "globe").foregroundStyle(.tint)
+            Image(nsImage: NSApplication.shared.applicationIconImage)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 22, height: 22)
             Text("Coincide").font(.system(size: 14, weight: .bold))
             Spacer()
             Button { addSelection = []; showingAdd = true } label: {

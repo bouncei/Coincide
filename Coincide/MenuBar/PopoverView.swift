@@ -44,9 +44,10 @@ struct PopoverView: View {
 
     private var header: some View {
         HStack(spacing: 8) {
-            Image(systemName: "globe")
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(.tint)
+            Image(nsImage: NSApplication.shared.applicationIconImage)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 20, height: 20)
             VStack(alignment: .leading, spacing: 0) {
                 Text("Coincide")
                     .font(.system(size: 13, weight: .bold))
