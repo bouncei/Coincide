@@ -5,6 +5,7 @@ import AppKit
 struct PopoverView: View {
     @EnvironmentObject var store: ZoneStore
     @EnvironmentObject var clock: MinuteClock
+    @EnvironmentObject var calendar: CalendarService
     @Environment(\.openWindow) private var openWindow
     @Environment(\.openSettings) private var openSettings
 
@@ -12,6 +13,11 @@ struct PopoverView: View {
         VStack(spacing: 0) {
             header
             Divider()
+
+            if calendar.isActive {
+                upNextSection
+                Divider()
+            }
 
             if store.zones.isEmpty {
                 emptyState
@@ -97,6 +103,30 @@ struct PopoverView: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 8)
+    }
+
+    @ViewBuilder
+    private var upNextSection: some View {
+        let up = CalendarLogic.upcoming(in: calendar.events, now: clock.now)
+        VStack(alignment: .leading, spacing: 0) {
+            Text("Up next")
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, Theme.gutter)
+                .padding(.top, 8)
+            if up.isEmpty {
+                Text("No meetings today")
+                    .font(.system(size: 11))
+                    .foregroundStyle(.tertiary)
+                    .padding(.horizontal, Theme.gutter)
+                    .padding(.vertical, 8)
+            } else {
+                ForEach(up.prefix(3)) { event in
+                    EventRowView(event: event, now: clock.now)
+                        .environmentObject(store)
+                }
+            }
+        }
     }
 
     private var emptyState: some View {
