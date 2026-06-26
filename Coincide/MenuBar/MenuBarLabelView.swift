@@ -11,6 +11,7 @@ import AppKit
 struct MenuBarLabelView: View {
     @ObservedObject var store: ZoneStore
     @ObservedObject var clock: MinuteClock
+    @ObservedObject var calendar: CalendarService
     @Environment(\.openWindow) private var openWindow
 
     var body: some View {
