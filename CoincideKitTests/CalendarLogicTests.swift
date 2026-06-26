@@ -65,4 +65,25 @@ final class CalendarLogicTests: XCTestCase {
         XCTAssertEqual(lines[1].time, "07:00")
         XCTAssertEqual(lines[1].phaseSymbol, "sunrise.fill")
     }
+
+    func testFractionClampsToDayWindow() {
+        let dayStart = d("2026-06-26T00:00:00Z")
+        XCTAssertEqual(CalendarLogic.fraction(of: d("2026-06-26T12:00:00Z"), dayStart: dayStart), 0.5, accuracy: 0.001)
+        XCTAssertEqual(CalendarLogic.fraction(of: d("2026-06-25T20:00:00Z"), dayStart: dayStart), 0.0, accuracy: 0.001)
+        XCTAssertEqual(CalendarLogic.fraction(of: d("2026-06-27T06:00:00Z"), dayStart: dayStart), 1.0, accuracy: 0.001)
+    }
+
+    func testTimelineBlocksClampToWindowAndSkipOutside() {
+        let dayStart = d("2026-06-26T00:00:00Z")
+        let events = [
+            ev("morning", "2026-06-26T09:00:00Z", "2026-06-26T10:00:00Z"),     // inside
+            ev("spillover", "2026-06-26T23:00:00Z", "2026-06-27T02:00:00Z"),   // clamps to 1.0 end
+            ev("yesterday", "2026-06-25T08:00:00Z", "2026-06-25T09:00:00Z"),   // outside -> skipped
+            ev("allday", "2026-06-26T00:00:00Z", "2026-06-27T00:00:00Z", allDay: true), // skipped
+        ]
+        let blocks = CalendarLogic.timelineBlocks(for: events, dayStart: dayStart)
+        XCTAssertEqual(blocks.map(\.id), ["morning", "spillover"])
+        XCTAssertEqual(blocks[0].startFraction, 9.0/24.0, accuracy: 0.001)
+        XCTAssertEqual(blocks[1].endFraction, 1.0, accuracy: 0.001)
+    }
 }

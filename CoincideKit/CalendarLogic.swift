@@ -45,4 +45,28 @@ enum CalendarLogic {
             )
         }
     }
+
+    struct TimelineBlock: Identifiable, Hashable {
+        let event: CalendarEventInfo
+        let startFraction: Double
+        let endFraction: Double
+        var id: String { event.id }
+    }
+
+    static func fraction(of date: Date, dayStart: Date) -> Double {
+        let f = date.timeIntervalSince(dayStart) / 86_400
+        return min(1, max(0, f))
+    }
+
+    static func timelineBlocks(for events: [CalendarEventInfo], dayStart: Date) -> [TimelineBlock] {
+        let dayEnd = dayStart.addingTimeInterval(86_400)
+        return events
+            .filter { !$0.isAllDay && $0.end > dayStart && $0.start < dayEnd }
+            .sorted { $0.start < $1.start }
+            .map { event in
+                let s = fraction(of: event.start, dayStart: dayStart)
+                let e = max(fraction(of: event.end, dayStart: dayStart), s + 0.012) // min visible width
+                return TimelineBlock(event: event, startFraction: s, endFraction: min(1, e))
+            }
+    }
 }
