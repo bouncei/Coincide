@@ -51,6 +51,10 @@ the desktop, sharing the same zones as the app.
   overlapping working hours and meeting slots.
 - 🧩 **Widgets** — small and medium WidgetKit widgets for Notification Center
   and the desktop, sharing the same data as the app.
+- 📅 **Calendar context (opt-in)** — upcoming meetings in the popover and menu
+  bar, shown across your zones, and as blocks on the day/night timeline. Read
+  via Apple **EventKit** — events stay on your Mac, no network, nothing leaves
+  the device.
 - 🏠 **Home + unlimited zones** — auto-detects your home zone and lets you add
   as many comparison zones as you like from the full IANA catalog.
 - 🪟 **Lives in the menu bar** — with a Dock icon only while a window is open.

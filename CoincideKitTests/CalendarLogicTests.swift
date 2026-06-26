@@ -86,4 +86,18 @@ final class CalendarLogicTests: XCTestCase {
         XCTAssertEqual(blocks[0].startFraction, 9.0/24.0, accuracy: 0.001)
         XCTAssertEqual(blocks[1].endFraction, 1.0, accuracy: 0.001)
     }
+
+    func testIsImminentZeroThresholdOnlyExactStart() {
+        let now = d("2026-06-26T15:00:00Z")
+        let atNow = ev("now", "2026-06-26T15:00:00Z", "2026-06-26T15:30:00Z")
+        let soon = ev("soon", "2026-06-26T15:01:00Z", "2026-06-26T15:30:00Z")
+        XCTAssertTrue(CalendarLogic.isImminent(atNow, now: now, withinMinutes: 0))
+        XCTAssertFalse(CalendarLogic.isImminent(soon, now: now, withinMinutes: 0))
+    }
+
+    func testNextStartingIncludesEventStartingExactlyNow() {
+        let now = d("2026-06-26T15:00:00Z")
+        let atNow = ev("now", "2026-06-26T15:00:00Z", "2026-06-26T15:30:00Z")
+        XCTAssertEqual(CalendarLogic.nextStarting(in: [atNow], now: now)?.id, "now")
+    }
 }

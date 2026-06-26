@@ -70,13 +70,14 @@ final class CalendarService: ObservableObject {
             calendars: nil
         )
         events = store.events(matching: predicate)
-            .map { ek -> CalendarEventInfo in
+            .compactMap { ek -> CalendarEventInfo? in
+                guard let start = ek.startDate, let end = ek.endDate else { return nil }
                 let rawTitle = ek.title ?? ""
                 return CalendarEventInfo(
                     id: ek.eventIdentifier ?? UUID().uuidString,
                     title: rawTitle.isEmpty ? "(No title)" : rawTitle,
-                    start: ek.startDate,
-                    end: ek.endDate,
+                    start: start,
+                    end: end,
                     isAllDay: ek.isAllDay,
                     calendarColorHex: Self.hex(ek.calendar?.cgColor),
                     location: ek.location
