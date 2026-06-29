@@ -9,7 +9,7 @@ struct CoincideApp: App {
     @StateObject private var store = ZoneStore()
     @StateObject private var clock = MinuteClock()
     @StateObject private var presence = WindowPresenceModel()
-    @StateObject private var calendar = CalendarService()
+    @StateObject private var calendar = CalendarHub()
 
     var body: some Scene {
         MenuBarExtra {

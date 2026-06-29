@@ -6,7 +6,7 @@ import ServiceManagement
 /// format, launch-at-login, and About.
 struct SettingsView: View {
     @EnvironmentObject var store: ZoneStore
-    @EnvironmentObject var calendar: CalendarService
+    @EnvironmentObject var calendar: CalendarHub
     @State private var showingAddSheet = false
     @State private var addSelection: Set<String> = []
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
@@ -153,30 +153,33 @@ struct SettingsView: View {
 
     private var calendarSection: some View {
         Section("Calendar") {
-            Toggle("Show upcoming meetings", isOn: $calendar.isEnabled)
-            if calendar.isEnabled {
-                switch calendar.access {
-                case .authorized:
-                    Label("Calendar access granted", systemImage: "checkmark.circle")
-                        .foregroundStyle(.secondary)
-                case .notDetermined:
-                    Text("Allow access when macOS asks.")
-                        .font(.system(size: 11)).foregroundStyle(.secondary)
-                case .denied:
-                    HStack {
-                        Text("Calendar access is off.")
-                            .font(.system(size: 11)).foregroundStyle(.secondary)
-                        Spacer()
-                        Button("Open System Settings") {
-                            if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Calendars") {
-                                NSWorkspace.shared.open(url)
-                            }
-                        }
-                        .controlSize(.small)
+            // macOS Calendar (EventKit)
+            Toggle("macOS Calendar", isOn: Binding(
+                get: { calendar.eventKit.isEnabled },
+                set: { calendar.eventKit.isEnabled = $0 }
+            ))
+            if calendar.eventKit.isEnabled, calendar.eventKit.access == .denied {
+                Button("Open System Settings") {
+                    if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Calendars") {
+                        NSWorkspace.shared.open(url)
                     }
                 }
+                .controlSize(.small)
             }
-            Text("Events stay on your Mac — Coincide reads them locally and never sends them anywhere.")
+
+            // Google
+            switch calendar.google.auth.state {
+            case .connected(let email):
+                LabeledContent("Google", value: email)
+                Button("Disconnect Google") { calendar.google.disconnect() }
+            case .needsReauth:
+                LabeledContent("Google", value: "Reconnect needed")
+                Button("Reconnect Google") { Task { await calendar.google.connect() } }
+            case .notConnected:
+                Button("Connect Google account") { Task { await calendar.google.connect() } }
+            }
+
+            Text("Events stay on your Mac — EventKit reads locally; Google is read-only over your account.")
                 .font(.system(size: 10)).foregroundStyle(.tertiary)
         }
     }

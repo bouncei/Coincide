@@ -5,7 +5,7 @@ import AppKit
 struct PopoverView: View {
     @EnvironmentObject var store: ZoneStore
     @EnvironmentObject var clock: MinuteClock
-    @EnvironmentObject var calendar: CalendarService
+    @EnvironmentObject var calendar: CalendarHub
     @Environment(\.openWindow) private var openWindow
     @Environment(\.openSettings) private var openSettings
 

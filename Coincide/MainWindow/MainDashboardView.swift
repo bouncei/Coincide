@@ -8,7 +8,7 @@ import AppKit
 struct MainDashboardView: View {
     @EnvironmentObject var store: ZoneStore
     @EnvironmentObject var clock: MinuteClock
-    @EnvironmentObject var calendar: CalendarService
+    @EnvironmentObject var calendar: CalendarHub
     @Environment(\.openSettings) private var openSettings
 
     /// nil = follow the live clock; non-nil = a scrubbed instant.
