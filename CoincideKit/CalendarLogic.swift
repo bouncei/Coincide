@@ -69,4 +69,9 @@ enum CalendarLogic {
                 return TimelineBlock(event: event, startFraction: s, endFraction: min(1, e))
             }
     }
+
+    /// Concatenate event lists from multiple sources and sort by start.
+    static func mergeSorted(_ lists: [[CalendarEventInfo]]) -> [CalendarEventInfo] {
+        lists.flatMap { $0 }.sorted { $0.start < $1.start }
+    }
 }
