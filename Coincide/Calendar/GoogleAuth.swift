@@ -162,6 +162,11 @@ final class GoogleAuth: NSObject, ObservableObject, ASWebAuthenticationPresentat
     }
 
     nonisolated func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
-        DispatchQueue.main.sync { NSApplication.shared.windows.first ?? ASPresentationAnchor() }
+        // AuthenticationServices calls this on the main thread. Use
+        // MainActor.assumeIsolated rather than DispatchQueue.main.sync, which
+        // would deadlock when this is already running on the main thread.
+        MainActor.assumeIsolated {
+            NSApplication.shared.windows.first ?? ASPresentationAnchor()
+        }
     }
 }
