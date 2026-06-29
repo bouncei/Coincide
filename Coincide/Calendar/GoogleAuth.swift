@@ -94,14 +94,21 @@ final class GoogleAuth: NSObject, ObservableObject, ASWebAuthenticationPresentat
         let tokens = GoogleTokens(refreshToken: refresh, accessToken: access,
                                   expiry: Date().addingTimeInterval(expiresIn), email: email)
         store.save(tokens)
+        guard store.load() != nil else { state = .notConnected; throw AuthError.badResponse }
         state = .connected(email ?? "Google")
     }
 
     func validAccessToken() async throws -> String {
-        guard var tokens = store.load() else { state = .notConnected; throw AuthError.refreshFailed }
+        guard let tokens = store.load() else { state = .notConnected; throw AuthError.refreshFailed }
         if !GoogleAuthLogic.needsRefresh(expiry: tokens.expiry, now: Date()),
            let access = tokens.accessToken { return access }
-        // refresh
+        return try await forceRefresh()
+    }
+
+    /// Refreshes the access token unconditionally (used on a 401). On failure
+    /// transitions to `.needsReauth`.
+    func forceRefresh() async throws -> String {
+        guard var tokens = store.load() else { state = .notConnected; throw AuthError.refreshFailed }
         let body = [
             "client_id": GoogleConfig.clientID,
             "refresh_token": tokens.refreshToken,

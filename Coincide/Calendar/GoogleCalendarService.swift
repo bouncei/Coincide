@@ -44,7 +44,13 @@ final class GoogleCalendarService: ObservableObject {
             ]
             var req = URLRequest(url: comps.url!)
             req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-            let (data, resp) = try await URLSession.shared.data(for: req)
+            var (data, resp) = try await URLSession.shared.data(for: req)
+            if (resp as? HTTPURLResponse)?.statusCode == 401 {
+                // Token may be revoked despite not being expired — force a refresh and retry once.
+                let fresh = try await auth.forceRefresh()
+                req.setValue("Bearer \(fresh)", forHTTPHeaderField: "Authorization")
+                (data, resp) = try await URLSession.shared.data(for: req)
+            }
             guard (resp as? HTTPURLResponse)?.statusCode == 200 else { return } // keep last events
             let decoded = try JSONDecoder().decode(GoogleAPIEventsResponse.self, from: data)
             events = GoogleEventMapper.map(decoded.items)
