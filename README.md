@@ -61,6 +61,16 @@ the desktop, sharing the same zones as the app.
 - 🌗 **12/24-hour**, drag-to-reorder, launch-at-login.
 - 🪶 **Tiny & native** — pure SwiftUI, no dependencies, App Sandbox, no network.
 
+### Connecting Google Calendar
+
+Coincide reads Google events via OAuth (read-only, `calendar.events.readonly`).
+To enable it in your own build: create a Google Cloud project, enable the
+Calendar API, configure the OAuth consent screen (add yourself as a test user),
+create an **iOS** OAuth client, and put the client ID + reverse-client-id into
+`Coincide/Calendar/GoogleConfig.swift` and the `CFBundleURLTypes` entry in
+`project.yml`. Tokens are stored in the Keychain; nothing is sent anywhere but
+Google. Public distribution requires Google's one-time scope verification.
+
 ## Architecture
 
 Native SwiftUI. One Xcode project, three targets:
