@@ -15,17 +15,30 @@ enum GoogleEventMapper {
         let id = event.id ?? UUID().uuidString
         let title = (event.summary?.isEmpty == false) ? event.summary! : "(No title)"
         let color = event.colorId.flatMap { eventColors[$0] }
+        let url = link(for: event)
 
         if let startStr = event.start?.dateTime, let endStr = event.end?.dateTime,
            let start = parseRFC3339(startStr), let end = parseRFC3339(endStr) {
             return CalendarEventInfo(id: id, title: title, start: start, end: end,
-                                     isAllDay: false, calendarColorHex: color, location: event.location)
+                                     isAllDay: false, calendarColorHex: color, location: event.location, url: url)
         }
         if let startDay = event.start?.date, let endDay = event.end?.date,
            let start = parseDay(startDay), let end = parseDay(endDay) {
             return CalendarEventInfo(id: id, title: title, start: start, end: end,
-                                     isAllDay: true, calendarColorHex: color, location: event.location)
+                                     isAllDay: true, calendarColorHex: color, location: event.location, url: url)
         }
+        return nil
+    }
+
+    /// The best link to act on an event: prefer the meeting/video-call URL,
+    /// then a URL embedded in the location, then the event page.
+    static func link(for event: GoogleAPIEvent) -> URL? {
+        if let h = event.hangoutLink, let u = URL(string: h) { return u }
+        if let video = event.conferenceData?.entryPoints?
+            .first(where: { $0.entryPointType == "video" })?.uri,
+           let u = URL(string: video) { return u }
+        if let loc = event.location, let u = CalendarLogic.firstURL(in: loc) { return u }
+        if let html = event.htmlLink, let u = URL(string: html) { return u }
         return nil
     }
 

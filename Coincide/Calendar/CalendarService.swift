@@ -80,7 +80,10 @@ final class CalendarService: ObservableObject {
                     end: end,
                     isAllDay: ek.isAllDay,
                     calendarColorHex: Self.hex(ek.calendar?.cgColor),
-                    location: ek.location
+                    location: ek.location,
+                    url: ek.url
+                        ?? ek.location.flatMap(CalendarLogic.firstURL(in:))
+                        ?? ek.notes.flatMap(CalendarLogic.firstURL(in:))
                 )
             }
             .sorted { $0.start < $1.start }

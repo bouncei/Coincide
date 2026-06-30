@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 
 /// One "Up next" row: title + home-zone start time + calendar-color dot;
 /// tapping expands the event's time across every tracked zone.
@@ -23,6 +24,9 @@ struct EventRowView: View {
                     Text(TimeFormatting.time(in: store.homeTimeZone, at: event.start, format: store.hourFormat))
                         .font(.system(size: 13, weight: .semibold, design: .rounded))
                         .monospacedDigit()
+                    if let url = event.url {
+                        EventLinkButton(url: url, isMeeting: CalendarLogic.isMeetingLink(url))
+                    }
                     Image(systemName: expanded ? "chevron.up" : "chevron.down")
                         .font(.system(size: 9)).foregroundStyle(.tertiary)
                 }
@@ -51,6 +55,49 @@ struct EventRowView: View {
         }
         .padding(.horizontal, Theme.gutter)
         .padding(.vertical, 11)
+    }
+}
+
+/// A compact, tinted capsule action: "Join" (video icon) for a live meeting,
+/// "Open" (arrow) for an event page. Highlights on hover, dips on press.
+private struct EventLinkButton: View {
+    let url: URL
+    let isMeeting: Bool
+    @State private var hovering = false
+
+    var body: some View {
+        Button { NSWorkspace.shared.open(url) } label: {
+            HStack(spacing: 3) {
+                Image(systemName: isMeeting ? "video.fill" : "arrow.up.forward")
+                    .font(.system(size: 8.5, weight: .bold))
+                Text(isMeeting ? "Join" : "Open")
+                    .font(.system(size: 11, weight: .semibold))
+            }
+            .foregroundStyle(.tint)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 3.5)
+            .background(
+                Capsule().fill(Color.accentColor.opacity(hovering ? 0.22 : 0.13))
+            )
+            .overlay(
+                Capsule().strokeBorder(Color.accentColor.opacity(hovering ? 0.45 : 0.28), lineWidth: 0.75)
+            )
+            .contentShape(Capsule())
+        }
+        .buttonStyle(PressScaleButtonStyle())
+        .onHover { hovering = $0 }
+        .animation(.easeOut(duration: 0.12), value: hovering)
+        .help(isMeeting ? "Join meeting" : "Open event")
+    }
+}
+
+/// Subtle scale-down on press for a tactile feel.
+private struct PressScaleButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.93 : 1)
+            .opacity(configuration.isPressed ? 0.85 : 1)
+            .animation(.spring(response: 0.2, dampingFraction: 0.6), value: configuration.isPressed)
     }
 }
 

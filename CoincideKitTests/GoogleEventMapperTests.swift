@@ -55,4 +55,59 @@ final class GoogleEventMapperTests: XCTestCase {
         """)
         XCTAssertNil(GoogleEventMapper.map(e))
     }
+
+    // MARK: - Meeting link
+
+    func testHangoutLinkPreferredOverEverything() {
+        let e = decode("""
+        {"id":"a","summary":"Sync","status":"confirmed",
+         "start":{"dateTime":"2026-06-26T15:00:00Z"},"end":{"dateTime":"2026-06-26T15:30:00Z"},
+         "htmlLink":"https://calendar.google.com/event?eid=1",
+         "hangoutLink":"https://meet.google.com/abc-defg-hij",
+         "location":"https://zoom.us/j/999",
+         "conferenceData":{"entryPoints":[{"entryPointType":"video","uri":"https://meet.google.com/zzz"}]}}
+        """)
+        XCTAssertEqual(GoogleEventMapper.map(e)?.url?.absoluteString, "https://meet.google.com/abc-defg-hij")
+    }
+
+    func testConferenceVideoEntryPointUsedWhenNoHangout() {
+        let e = decode("""
+        {"id":"b","summary":"Sync","status":"confirmed",
+         "start":{"dateTime":"2026-06-26T15:00:00Z"},"end":{"dateTime":"2026-06-26T15:30:00Z"},
+         "htmlLink":"https://calendar.google.com/event?eid=2",
+         "conferenceData":{"entryPoints":[
+           {"entryPointType":"phone","uri":"tel:+1-555"},
+           {"entryPointType":"video","uri":"https://zoom.us/j/123"}]}}
+        """)
+        XCTAssertEqual(GoogleEventMapper.map(e)?.url?.absoluteString, "https://zoom.us/j/123")
+    }
+
+    func testURLInLocationUsedWhenNoConference() {
+        let e = decode("""
+        {"id":"c","summary":"Sync","status":"confirmed",
+         "start":{"dateTime":"2026-06-26T15:00:00Z"},"end":{"dateTime":"2026-06-26T15:30:00Z"},
+         "htmlLink":"https://calendar.google.com/event?eid=3",
+         "location":"Join here https://zoom.us/j/456 or call in"}
+        """)
+        XCTAssertEqual(GoogleEventMapper.map(e)?.url?.absoluteString, "https://zoom.us/j/456")
+    }
+
+    func testHtmlLinkFallbackWhenNoMeetingLink() {
+        let e = decode("""
+        {"id":"d","summary":"Sync","status":"confirmed",
+         "start":{"dateTime":"2026-06-26T15:00:00Z"},"end":{"dateTime":"2026-06-26T15:30:00Z"},
+         "htmlLink":"https://calendar.google.com/event?eid=4",
+         "location":"Conference Room B"}
+        """)
+        XCTAssertEqual(GoogleEventMapper.map(e)?.url?.absoluteString, "https://calendar.google.com/event?eid=4")
+    }
+
+    func testNoLinkWhenNothingAvailable() {
+        let e = decode("""
+        {"id":"e","summary":"Sync","status":"confirmed",
+         "start":{"dateTime":"2026-06-26T15:00:00Z"},"end":{"dateTime":"2026-06-26T15:30:00Z"},
+         "location":"Conference Room B"}
+        """)
+        XCTAssertNil(GoogleEventMapper.map(e)?.url)
+    }
 }

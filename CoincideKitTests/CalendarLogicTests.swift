@@ -100,4 +100,31 @@ final class CalendarLogicTests: XCTestCase {
         let atNow = ev("now", "2026-06-26T15:00:00Z", "2026-06-26T15:30:00Z")
         XCTAssertEqual(CalendarLogic.nextStarting(in: [atNow], now: now)?.id, "now")
     }
+
+    // MARK: - Link helpers
+
+    func testIsMeetingLinkRecognizesVideoHosts() {
+        for s in ["https://meet.google.com/abc-defg-hij",
+                  "https://us02web.zoom.us/j/123",
+                  "https://zoomgov.com/j/9",
+                  "https://teams.microsoft.com/l/meetup-join/x",
+                  "https://acme.webex.com/meet/x",
+                  "https://whereby.com/room"] {
+            XCTAssertTrue(CalendarLogic.isMeetingLink(URL(string: s)!), "expected meeting: \(s)")
+        }
+    }
+
+    func testIsMeetingLinkRejectsEventPagesAndOtherSites() {
+        for s in ["https://calendar.google.com/event?eid=1",
+                  "https://example.com/agenda",
+                  "https://notzoom.us.evil.com/j/1"] {
+            XCTAssertFalse(CalendarLogic.isMeetingLink(URL(string: s)!), "expected non-meeting: \(s)")
+        }
+    }
+
+    func testFirstURLFindsLinkInFreeText() {
+        XCTAssertEqual(CalendarLogic.firstURL(in: "dial in or join https://zoom.us/j/77 now")?.absoluteString,
+                       "https://zoom.us/j/77")
+        XCTAssertNil(CalendarLogic.firstURL(in: "Conference Room B, 3rd floor"))
+    }
 }

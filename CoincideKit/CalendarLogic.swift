@@ -21,6 +21,29 @@ enum CalendarLogic {
         Int((event.start.timeIntervalSince(now) / 60).rounded(.down))
     }
 
+    /// First http(s) URL found in free text — meeting links often live in an
+    /// event's location or notes rather than a dedicated URL field.
+    static func firstURL(in text: String) -> URL? {
+        guard let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue) else { return nil }
+        let range = NSRange(text.startIndex..., in: text)
+        return detector.firstMatch(in: text, options: [], range: range)?.url
+            .flatMap { $0.scheme?.hasPrefix("http") == true ? $0 : nil }
+    }
+
+    /// Known video-conferencing hosts — used to label a link "Join" (a live
+    /// call) vs "Open" (an event page).
+    private static let meetingHosts = [
+        "meet.google.com", "zoom.us", "zoomgov.com", "teams.microsoft.com",
+        "teams.live.com", "webex.com", "whereby.com", "meet.jit.si", "around.co"
+    ]
+
+    /// Whether a URL points at a live meeting (a video call) rather than an
+    /// event page or other resource.
+    static func isMeetingLink(_ url: URL) -> Bool {
+        guard let host = url.host?.lowercased() else { return false }
+        return meetingHosts.contains { host == $0 || host.hasSuffix("." + $0) }
+    }
+
     static func isImminent(_ event: CalendarEventInfo, now: Date, withinMinutes: Int) -> Bool {
         let m = minutesUntilStart(event, now: now)
         return m >= 0 && m <= withinMinutes
