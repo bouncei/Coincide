@@ -20,8 +20,11 @@ final class CalendarHub: ObservableObject {
         eventKit.objectWillChange
             .sink { [weak self] _ in DispatchQueue.main.async { self?.recompute() } }
             .store(in: &cancellables)
+        // NB: `@Published.$events` fires in willSet (before `google.events` is
+        // updated), so defer the recompute a tick — otherwise it re-reads the
+        // OLD (empty) value and the merged list never picks up Google events.
         google.$events
-            .sink { [weak self] _ in self?.recompute() }
+            .sink { [weak self] _ in DispatchQueue.main.async { self?.recompute() } }
             .store(in: &cancellables)
         google.auth.objectWillChange
             .sink { [weak self] _ in DispatchQueue.main.async { self?.recompute(); self?.objectWillChange.send() } }

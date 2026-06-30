@@ -15,7 +15,7 @@ This feature adds **Google Calendar as a second source**, connected directly in-
 - **Add Google *alongside* EventKit** (not replace). Both sources can be on; events merge into the existing surfaces.
 - **No-dependency OAuth**: Apple's `ASWebAuthenticationSession` + `URLSession`, **PKCE**, **no client secret**. Tokens in the **Keychain**. (No third-party SDK.)
 - **Ship the maintainer's OAuth client ID** in the app (`GoogleConfig`); forkers override. Read-only calendar is a Google "sensitive" scope — works in **Testing** mode now (self as test user); needs Google **verification** before public/App Store release.
-- **Read the `primary` Google calendar** for v1 (all-calendars is a follow-up — see Out of scope). *(Revised from "all calendars" after a simplicity review: per-calendar fan-out is N+1 calls + pagination for marginal v1 value.)*
+- **Read ALL of the user's Google calendars.** *(Originally scoped to `primary` only after a simplicity review, then reversed during manual testing: the user's events live across several calendars, not just primary, so primary-only showed an incomplete picture. The service now lists `calendarList` and fans out one `events` request per calendar, merging the results. Scope broadened from `calendar.events.readonly` to `calendar.readonly` to allow the calendar list.)*
 - Read-only. Same surfaces. A per-source on/off in Settings.
 
 ### Simplicity review outcomes (Distinguished-Engineer pass)

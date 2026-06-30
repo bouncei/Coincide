@@ -32,31 +32,53 @@ final class GoogleCalendarService: ObservableObject {
         guard auth.isConnected else { events = []; return }
         do {
             let token = try await auth.validAccessToken()
-            let now = Date()
-            var comps = URLComponents(string:
-                "https://www.googleapis.com/calendar/v3/calendars/primary/events")!
-            comps.queryItems = [
-                .init(name: "timeMin", value: iso(now.addingTimeInterval(-3600))),
-                .init(name: "timeMax", value: iso(now.addingTimeInterval(48 * 3600))),
-                .init(name: "singleEvents", value: "true"),
-                .init(name: "orderBy", value: "startTime"),
-                .init(name: "maxResults", value: "100")
-            ]
-            var req = URLRequest(url: comps.url!)
-            req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-            var (data, resp) = try await URLSession.shared.data(for: req)
-            if (resp as? HTTPURLResponse)?.statusCode == 401 {
-                // Token may be revoked despite not being expired — force a refresh and retry once.
-                let fresh = try await auth.forceRefresh()
-                req.setValue("Bearer \(fresh)", forHTTPHeaderField: "Authorization")
-                (data, resp) = try await URLSession.shared.data(for: req)
+            let calendarIds = try await fetchCalendarIds(token: token)
+            var collected: [CalendarEventInfo] = []
+            for calId in calendarIds {
+                let evs = (try? await fetchEvents(calendarId: calId, token: token)) ?? []
+                collected.append(contentsOf: evs)
             }
-            guard (resp as? HTTPURLResponse)?.statusCode == 200 else { return } // keep last events
-            let decoded = try JSONDecoder().decode(GoogleAPIEventsResponse.self, from: data)
-            events = GoogleEventMapper.map(decoded.items)
+            events = collected.sorted { $0.start < $1.start }
         } catch {
-            // Offline / refresh failure: keep last events; auth.state already reflects reauth needs.
+            // Leave the last-known events in place on a transient failure.
         }
+    }
+
+    /// All of the user's calendar IDs (`calendarList.list`).
+    private func fetchCalendarIds(token: String) async throws -> [String] {
+        var req = URLRequest(url: URL(string: "https://www.googleapis.com/calendar/v3/users/me/calendarList")!)
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        var (data, resp) = try await URLSession.shared.data(for: req)
+        if (resp as? HTTPURLResponse)?.statusCode == 401 {
+            let fresh = try await auth.forceRefresh()
+            req.setValue("Bearer \(fresh)", forHTTPHeaderField: "Authorization")
+            (data, resp) = try await URLSession.shared.data(for: req)
+        }
+        guard (resp as? HTTPURLResponse)?.statusCode == 200 else { return [] }
+        return try JSONDecoder().decode(GoogleCalendarListResponse.self, from: data).items.map(\.id)
+    }
+
+    /// Timed-window events for one calendar.
+    private func fetchEvents(calendarId: String, token: String) async throws -> [CalendarEventInfo] {
+        let now = Date()
+        let encodedId = calendarId.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? calendarId
+        var comps = URLComponents()
+        comps.scheme = "https"
+        comps.host = "www.googleapis.com"
+        comps.percentEncodedPath = "/calendar/v3/calendars/\(encodedId)/events"
+        comps.queryItems = [
+            .init(name: "timeMin", value: iso(now.addingTimeInterval(-3600))),
+            .init(name: "timeMax", value: iso(now.addingTimeInterval(48 * 3600))),
+            .init(name: "singleEvents", value: "true"),
+            .init(name: "orderBy", value: "startTime"),
+            .init(name: "maxResults", value: "100")
+        ]
+        guard let url = comps.url else { return [] }
+        var req = URLRequest(url: url)
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        let (data, resp) = try await URLSession.shared.data(for: req)
+        guard (resp as? HTTPURLResponse)?.statusCode == 200 else { return [] }
+        return GoogleEventMapper.map(try JSONDecoder().decode(GoogleAPIEventsResponse.self, from: data).items)
     }
 
     private func iso(_ date: Date) -> String {

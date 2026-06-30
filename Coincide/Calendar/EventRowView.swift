@@ -50,7 +50,7 @@ struct EventRowView: View {
             }
         }
         .padding(.horizontal, Theme.gutter)
-        .padding(.vertical, 8)
+        .padding(.vertical, 11)
     }
 }
 

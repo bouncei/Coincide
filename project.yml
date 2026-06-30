@@ -40,7 +40,7 @@ targets:
         CFBundleURLTypes:
           - CFBundleURLName: dev.bouncei.Coincide.oauth
             CFBundleURLSchemes:
-              - com.googleusercontent.apps.REPLACE_WITH_CLIENT_ID
+              - com.googleusercontent.apps.389071915754-2efnf1oeo31eok0ev199ilggvns6c8mc
     dependencies:
       - target: CoincideWidget
 

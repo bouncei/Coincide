@@ -18,3 +18,14 @@ struct GoogleAPIEvent: Decodable {
 struct GoogleAPIEventsResponse: Decodable {
     let items: [GoogleAPIEvent]
 }
+
+/// One entry from the user's calendar list (`calendarList.list`).
+struct GoogleCalendarListEntry: Decodable {
+    let id: String
+    let primary: Bool?
+    let selected: Bool?
+}
+
+struct GoogleCalendarListResponse: Decodable {
+    let items: [GoogleCalendarListEntry]
+}
