@@ -7,6 +7,7 @@ import ServiceManagement
 struct SettingsView: View {
     @EnvironmentObject var store: ZoneStore
     @EnvironmentObject var calendar: CalendarHub
+    @Environment(\.openWindow) private var openWindow
     @State private var showingAddSheet = false
     @State private var addSelection: Set<String> = []
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
@@ -190,7 +191,13 @@ struct SettingsView: View {
         Section("General") {
             Toggle("Launch at login", isOn: $launchAtLogin)
                 .onChange(of: launchAtLogin) { _, newValue in setLaunchAtLogin(newValue) }
-            Button("Run Setup Again") { store.resetOnboarding() }
+            Button("Run Setup Again") {
+                store.resetOnboarding()
+                // Resetting the flag alone isn't enough — the onboarding lives in
+                // the main window scene, which may be closed. Reopen and front it.
+                NSApp.activate(ignoringOtherApps: true)
+                openWindow(id: WindowID.main)
+            }
         }
     }
 
