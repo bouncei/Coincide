@@ -163,34 +163,43 @@ struct MainDashboardView: View {
         let blocks = CalendarLogic.timelineBlocks(for: calendar.events, dayStart: dayStart)
         if !blocks.isEmpty {
             HStack(spacing: 0) {
-                Spacer().frame(width: nameWidth)
+                HStack(spacing: 5) {
+                    Image(systemName: "calendar")
+                        .font(.system(size: 10, weight: .medium))
+                    Text("Today")
+                        .font(.system(size: 11, weight: .medium))
+                    Spacer()
+                }
+                .foregroundStyle(.secondary)
+                .frame(width: nameWidth, alignment: .leading)
+
                 GeometryReader { geo in
                     ZStack(alignment: .leading) {
+                        // A faint baseline so the lane reads as a timeline track.
+                        Capsule()
+                            .fill(.quaternary.opacity(0.6))
+                            .frame(height: 3)
+                        // The "now"/scrubbed marker, aligned with the bands below.
+                        Rectangle()
+                            .fill(.primary.opacity(0.28))
+                            .frame(width: 1.5)
+                            .offset(x: fraction * geo.size.width - 0.75)
                         ForEach(blocks) { block in
-                            let x = block.startFraction * geo.size.width
-                            let w = max(3, (block.endFraction - block.startFraction) * geo.size.width)
-                            RoundedRectangle(cornerRadius: 4, style: .continuous)
-                                .fill((Color(hex: block.event.calendarColorHex) ?? .accentColor).opacity(0.85))
-                                .frame(width: w, height: 16)
-                                .overlay(alignment: .leading) {
-                                    Text(block.event.title)
-                                        .font(.system(size: 9, weight: .medium))
-                                        .foregroundStyle(.white)
-                                        .lineLimit(1)
-                                        .padding(.leading, 4)
-                                        .frame(width: w, alignment: .leading)
-                                }
-                                .offset(x: x)
-                                .help(block.event.title)
+                            EventBlockView(block: block,
+                                           width: geo.size.width,
+                                           homeTZ: homeTZ,
+                                           zones: store.displayZones,
+                                           hourFormat: store.hourFormat)
                         }
                     }
-                    .frame(height: 18)
+                    .frame(height: 22)
                 }
-                .frame(height: 18)
+                .frame(height: 22)
+
                 Spacer().frame(width: timeWidth)
             }
             .padding(.horizontal, 16)
-            .padding(.top, 6)
+            .padding(.top, 8)
         }
     }
 
@@ -326,5 +335,130 @@ private struct DashboardRow: View {
                     .offset(x: fraction * geo.size.width - 1)
             }
         }
+    }
+}
+
+/// An event marker on the timeline. Wide events show their title; short ones
+/// collapse to a dot — either way, click for a detail popover and hover to
+/// highlight.
+private struct EventBlockView: View {
+    let block: CalendarLogic.TimelineBlock
+    let width: CGFloat
+    let homeTZ: TimeZone
+    let zones: [SavedZone]
+    let hourFormat: HourFormat
+
+    @State private var showing = false
+    @State private var hovering = false
+
+    var body: some View {
+        let x = block.startFraction * width
+        let w = max(10, (block.endFraction - block.startFraction) * width)
+        let color = Color(hex: block.event.calendarColorHex) ?? .accentColor
+        let showTitle = w >= 48
+        Button { showing.toggle() } label: {
+            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                .fill(color.gradient)
+                .frame(width: w, height: 20)
+                .overlay(alignment: .leading) {
+                    if showTitle {
+                        Text(block.event.title)
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(.white)
+                            .lineLimit(1)
+                            .padding(.horizontal, 6)
+                            .frame(width: w, alignment: .leading)
+                    } else {
+                        Circle()
+                            .fill(.white.opacity(0.95))
+                            .frame(width: 4, height: 4)
+                            .frame(width: w, alignment: .center)
+                    }
+                }
+                .overlay(
+                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                        .strokeBorder(.white.opacity(hovering ? 0.6 : 0.22), lineWidth: hovering ? 1 : 0.5)
+                )
+                .shadow(color: color.opacity(hovering ? 0.55 : 0.35), radius: hovering ? 4 : 2, y: 1)
+                .scaleEffect(hovering ? 1.06 : 1, anchor: .bottom)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .offset(x: x)
+        .onHover { hovering = $0 }
+        .animation(.easeOut(duration: 0.12), value: hovering)
+        .popover(isPresented: $showing, arrowEdge: .bottom) {
+            EventDetailPopover(event: block.event, homeTZ: homeTZ, zones: zones, hourFormat: hourFormat)
+        }
+    }
+}
+
+/// Details for a single event: title, when (home zone), where, and the same
+/// instant across every tracked zone — with a Join/Open link when available.
+private struct EventDetailPopover: View {
+    let event: CalendarEventInfo
+    let homeTZ: TimeZone
+    let zones: [SavedZone]
+    let hourFormat: HourFormat
+
+    private var color: Color { Color(hex: event.calendarColorHex) ?? .accentColor }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .top, spacing: 8) {
+                Circle().fill(color).frame(width: 9, height: 9).padding(.top, 4)
+                Text(event.title).font(.system(size: 13, weight: .semibold))
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            VStack(alignment: .leading, spacing: 4) {
+                Label(timeRange, systemImage: "clock")
+                if let loc = event.location, !loc.isEmpty {
+                    Label(loc, systemImage: "mappin.and.ellipse").lineLimit(2)
+                }
+            }
+            .font(.system(size: 11))
+            .foregroundStyle(.secondary)
+
+            Divider()
+
+            VStack(alignment: .leading, spacing: 5) {
+                Text("Starts at").font(.system(size: 10, weight: .semibold)).foregroundStyle(.tertiary)
+                ForEach(CalendarLogic.zoneLines(for: event, zones: zones, format: hourFormat), id: \.self) { line in
+                    HStack(spacing: 6) {
+                        Text(line.flag).font(.system(size: 12))
+                        Text(line.city).font(.system(size: 11)).foregroundStyle(.secondary)
+                        Spacer(minLength: 10)
+                        Text(line.time).font(.system(size: 11, weight: .medium)).monospacedDigit()
+                        Image(systemName: line.phaseSymbol)
+                            .font(.system(size: 8))
+                            .symbolRenderingMode(.hierarchical)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+
+            if let url = event.url {
+                Divider()
+                Button {
+                    NSWorkspace.shared.open(url)
+                } label: {
+                    Label(CalendarLogic.isMeetingLink(url) ? "Join meeting" : "Open event",
+                          systemImage: CalendarLogic.isMeetingLink(url) ? "video.fill" : "arrow.up.forward")
+                        .font(.system(size: 12, weight: .medium))
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.small)
+            }
+        }
+        .padding(14)
+        .frame(width: 250)
+    }
+
+    private var timeRange: String {
+        let start = TimeFormatting.time(in: homeTZ, at: event.start, format: hourFormat)
+        let end = TimeFormatting.time(in: homeTZ, at: event.end, format: hourFormat)
+        let city = SavedZone(tzIdentifier: homeTZ.identifier).cityName
+        return "\(start) – \(end) · \(city)"
     }
 }
