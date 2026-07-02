@@ -51,11 +51,25 @@ the desktop, sharing the same zones as the app.
   overlapping working hours and meeting slots.
 - 🧩 **Widgets** — small and medium WidgetKit widgets for Notification Center
   and the desktop, sharing the same data as the app.
+- 📅 **Calendar context (opt-in)** — upcoming meetings in the popover and menu
+  bar, shown across your zones, and as blocks on the day/night timeline. Read
+  via Apple **EventKit** — events stay on your Mac, no network, nothing leaves
+  the device.
 - 🏠 **Home + unlimited zones** — auto-detects your home zone and lets you add
   as many comparison zones as you like from the full IANA catalog.
 - 🪟 **Lives in the menu bar** — with a Dock icon only while a window is open.
 - 🌗 **12/24-hour**, drag-to-reorder, launch-at-login.
 - 🪶 **Tiny & native** — pure SwiftUI, no dependencies, App Sandbox, no network.
+
+### Connecting Google Calendar
+
+Coincide reads Google events via OAuth (read-only, `calendar.events.readonly`).
+To enable it in your own build: create a Google Cloud project, enable the
+Calendar API, configure the OAuth consent screen (add yourself as a test user),
+create an **iOS** OAuth client, and put the client ID + reverse-client-id into
+`Coincide/Calendar/GoogleConfig.swift` and the `CFBundleURLTypes` entry in
+`project.yml`. Tokens are stored in the Keychain; nothing is sent anywhere but
+Google. Public distribution requires Google's one-time scope verification.
 
 ## Architecture
 

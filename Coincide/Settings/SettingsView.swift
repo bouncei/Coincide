@@ -1,10 +1,12 @@
 import SwiftUI
+import AppKit
 import ServiceManagement
 
 /// Reopenable settings: manage zones, choose the menu bar reference, time
 /// format, launch-at-login, and About.
 struct SettingsView: View {
     @EnvironmentObject var store: ZoneStore
+    @EnvironmentObject var calendar: CalendarHub
     @State private var showingAddSheet = false
     @State private var addSelection: Set<String> = []
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
@@ -16,6 +18,7 @@ struct SettingsView: View {
             zonesSection
             menuBarSection
             appearanceSection
+            calendarSection
             generalSection
             aboutSection
         }
@@ -143,6 +146,41 @@ struct SettingsView: View {
                 ForEach(HourFormat.allCases, id: \.self) { Text($0.displayName).tag($0) }
             }
             .pickerStyle(.segmented)
+        }
+    }
+
+    // MARK: Calendar
+
+    private var calendarSection: some View {
+        Section("Calendar") {
+            // macOS Calendar (EventKit)
+            Toggle("macOS Calendar", isOn: Binding(
+                get: { calendar.eventKit.isEnabled },
+                set: { calendar.eventKit.isEnabled = $0 }
+            ))
+            if calendar.eventKit.isEnabled, calendar.eventKit.access == .denied {
+                Button("Open System Settings") {
+                    if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Calendars") {
+                        NSWorkspace.shared.open(url)
+                    }
+                }
+                .controlSize(.small)
+            }
+
+            // Google
+            switch calendar.google.auth.state {
+            case .connected(let email):
+                LabeledContent("Google", value: email)
+                Button("Disconnect Google") { calendar.google.disconnect() }
+            case .needsReauth:
+                LabeledContent("Google", value: "Reconnect needed")
+                Button("Reconnect Google") { Task { await calendar.google.connect() } }
+            case .notConnected:
+                Button("Connect Google account") { Task { await calendar.google.connect() } }
+            }
+
+            Text("Events stay on your Mac — EventKit reads locally; Google is read-only over your account.")
+                .font(.system(size: 10)).foregroundStyle(.tertiary)
         }
     }
 

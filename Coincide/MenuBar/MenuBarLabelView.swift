@@ -11,6 +11,7 @@ import AppKit
 struct MenuBarLabelView: View {
     @ObservedObject var store: ZoneStore
     @ObservedObject var clock: MinuteClock
+    @ObservedObject var calendar: CalendarHub
     @Environment(\.openWindow) private var openWindow
 
     var body: some View {
@@ -26,7 +27,12 @@ struct MenuBarLabelView: View {
 
     @ViewBuilder
     private var content: some View {
-        if let ref = store.referenceZone {
+        if calendar.isActive,
+           let next = CalendarLogic.nextStarting(in: calendar.events, now: clock.now),
+           CalendarLogic.isImminent(next, now: clock.now, withinMinutes: 30) {
+            let mins = CalendarLogic.minutesUntilStart(next, now: clock.now)
+            Text("\(next.title) · \(mins)m")
+        } else if let ref = store.referenceZone {
             let time = TimeFormatting.time(in: ref.timeZone, at: clock.now, format: store.hourFormat)
             Text("\(ref.flag) \(time)")
         } else {

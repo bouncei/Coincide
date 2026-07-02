@@ -9,14 +9,16 @@ struct CoincideApp: App {
     @StateObject private var store = ZoneStore()
     @StateObject private var clock = MinuteClock()
     @StateObject private var presence = WindowPresenceModel()
+    @StateObject private var calendar = CalendarHub()
 
     var body: some Scene {
         MenuBarExtra {
             PopoverView()
                 .environmentObject(store)
                 .environmentObject(clock)
+                .environmentObject(calendar)
         } label: {
-            MenuBarLabelView(store: store, clock: clock)
+            MenuBarLabelView(store: store, clock: clock, calendar: calendar)
         }
         .menuBarExtraStyle(.window)
 
@@ -25,6 +27,7 @@ struct CoincideApp: App {
             RootWindowView()
                 .environmentObject(store)
                 .environmentObject(clock)
+                .environmentObject(calendar)
                 .tracksWindowPresence(presence)
         }
         .windowResizability(.contentMinSize)
@@ -34,6 +37,7 @@ struct CoincideApp: App {
         Settings {
             SettingsView()
                 .environmentObject(store)
+                .environmentObject(calendar)
                 .tracksWindowPresence(presence)
         }
     }
