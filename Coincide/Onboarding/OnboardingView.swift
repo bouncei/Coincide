@@ -1,60 +1,115 @@
 import SwiftUI
 
-/// First-launch flow: welcome → confirm home zone → add work zones & pick the
-/// menu bar reference. Writes everything to the store in one shot at the end.
+/// First-launch flow, redesigned as a cinematic, value-first experience:
+/// hero → home zone → add-your-world (with a live preview) → optional calendar
+/// → a celebratory finish. Still writes everything in one shot via
+/// `ZoneStore.finishOnboarding(...)` at the end.
 struct OnboardingView: View {
     @EnvironmentObject var store: ZoneStore
-    @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject var clock: MinuteClock
+    @EnvironmentObject var calendar: CalendarHub
 
-    @State private var step = 0
+    private enum Step: Int, CaseIterable { case welcome, home, world, calendar, finish }
+    @State private var step: Step = .welcome
+
     @State private var homeID = TimeZone.current.identifier
     @State private var otherIDs: Set<String> = []
-    @State private var referenceID: String?
     @State private var hourFormat: HourFormat = .twelveHour
 
     var body: some View {
+        content
+            .frame(width: 520, height: 640)
+            .transition(.opacity)
+    }
+
+    @ViewBuilder
+    private var content: some View {
+        switch step {
+        case .welcome:
+            OnboardingHeroView(onStart: { go(.home) })
+                .transition(.opacity)
+        case .finish:
+            OnboardingFinishView(homeID: homeID, referenceID: nil,
+                                 hourFormat: hourFormat, now: clock.now,
+                                 onDone: finish)
+                .transition(.opacity)
+        default:
+            middleStep
+                .transition(.opacity)
+        }
+    }
+
+    // MARK: Middle steps (home / world / calendar)
+
+    private var middleStep: some View {
         VStack(spacing: 0) {
-            ProgressDots(count: 3, index: step)
-                .padding(.top, 18)
-
-            Group {
-                switch step {
-                case 0: welcome
-                case 1: homeStep
-                default: zonesStep
-                }
+            banner
+            Divider()
+            ScrollView {
+                stepBody
+                    .padding(.horizontal, 24)
+                    .padding(.top, 16)
+                    .padding(.bottom, 8)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-
+            .frame(maxHeight: .infinity)
             Divider()
             controls
         }
-        .frame(width: 480, height: 580)
     }
 
-    // MARK: Steps
+    private var banner: some View {
+        let fraction = SkyModel.dayFraction(of: clock.now, in: TimeZone(identifier: homeID) ?? .current)
+        return ZStack(alignment: .bottomLeading) {
+            AnimatedSkyView(fixedFraction: fraction, showsCelestialBody: true)
+            VStack {
+                HStack {
+                    Spacer()
+                    OnboardingProgress(count: 3, index: (step.rawValue - 1))
+                }
+                .padding(14)
+                Spacer()
+            }
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title).font(.system(size: 20, weight: .bold)).foregroundStyle(.white)
+                Text(subtitle).font(.system(size: 12)).foregroundStyle(.white.opacity(0.9))
+            }
+            .padding(16)
+        }
+        .frame(height: 128)
+    }
 
-    private var welcome: some View {
-        VStack(spacing: 16) {
-            Spacer()
-            Image(systemName: "clock.badge.checkmark")
-                .font(.system(size: 56, weight: .light))
-                .foregroundStyle(.tint)
-            Text("Welcome to Coincide")
-                .font(.system(size: 24, weight: .bold))
-            Text("Keep your home time and the zones you work with side by side — in your menu bar and as a widget — so you never miscount the hours again.")
-                .font(.system(size: 13))
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 40)
-            Spacer()
+    private var title: String {
+        switch step {
+        case .home: return "Where's home?"
+        case .world: return "Add your world"
+        case .calendar: return "See your meetings too"
+        default: return ""
         }
     }
 
-    private var homeStep: some View {
+    private var subtitle: String {
+        switch step {
+        case .home: return "We detected this from your Mac — change it if it's off."
+        case .world: return "Pick the zones you work with. Watch your day line up."
+        case .calendar: return "Optional — bring your meetings into every zone."
+        default: return ""
+        }
+    }
+
+    @ViewBuilder
+    private var stepBody: some View {
+        switch step {
+        case .home: homeBody
+        case .world: worldBody
+        case .calendar: OnboardingCalendarStep()
+        default: EmptyView()
+        }
+    }
+
+    // MARK: Home
+
+    private var homeBody: some View {
         VStack(alignment: .leading, spacing: 12) {
-            stepHeader("Your home time zone",
-                       "We detected this from your Mac. Change it if it's wrong.")
             HStack(spacing: 10) {
                 Text(SavedZone.flag(for: TimezoneCountries.codeByZone[homeID]))
                     .font(.system(size: 26))
@@ -67,7 +122,7 @@ struct OnboardingView: View {
                         .font(.system(size: 12)).foregroundStyle(.secondary)
                 }
                 Spacer()
-                Text(TimeFormatting.time(in: TimeZone(identifier: homeID) ?? .current, at: Date(), format: hourFormat))
+                Text(TimeFormatting.time(in: TimeZone(identifier: homeID) ?? .current, at: clock.now, format: hourFormat))
                     .font(.system(size: 20, weight: .medium, design: .rounded)).monospacedDigit()
             }
             .padding(12)
@@ -78,33 +133,25 @@ struct OnboardingView: View {
                 get: { [homeID] },
                 set: { homeID = $0.first ?? homeID }
             ), singleSelect: true)
+            .frame(height: 260)
             .clipShape(RoundedRectangle(cornerRadius: 10))
             .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(.quaternary))
         }
-        .padding(.horizontal, 24)
-        .padding(.top, 12)
     }
 
-    private var zonesStep: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            stepHeader("Add the zones you work with",
-                       "Choose as many as you like — PST, EST, or anywhere else.")
+    // MARK: World
+
+    private var worldBody: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            LiveZonePreviewView(homeID: homeID,
+                                otherIDs: Array(otherIDs).sorted(),
+                                now: clock.now,
+                                hourFormat: hourFormat)
+
             ZonePickerView(selection: $otherIDs, excluded: [homeID])
+                .frame(height: 240)
                 .clipShape(RoundedRectangle(cornerRadius: 10))
                 .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(.quaternary))
-
-            HStack {
-                Text("Show in menu bar").font(.system(size: 12, weight: .medium)).foregroundStyle(.secondary)
-                Spacer()
-                Picker("", selection: $referenceID) {
-                    Text("Home (\(SavedZone.cityName(for: homeID)))").tag(String?.none)
-                    ForEach(Array(otherIDs).sorted(), id: \.self) { id in
-                        Text(SavedZone.cityName(for: id)).tag(String?.some(id))
-                    }
-                }
-                .labelsHidden()
-                .frame(maxWidth: 200)
-            }
 
             HStack {
                 Text("Time format").font(.system(size: 12, weight: .medium)).foregroundStyle(.secondary)
@@ -114,65 +161,56 @@ struct OnboardingView: View {
                 }
                 .pickerStyle(.segmented)
                 .labelsHidden()
-                .frame(maxWidth: 200)
+                .frame(maxWidth: 180)
             }
         }
-        .padding(.horizontal, 24)
-        .padding(.top, 12)
     }
 
-    // MARK: Chrome
-
-    private func stepHeader(_ title: String, _ subtitle: String) -> some View {
-        VStack(alignment: .leading, spacing: 3) {
-            Text(title).font(.system(size: 18, weight: .bold))
-            Text(subtitle).font(.system(size: 12)).foregroundStyle(.secondary)
-        }
-    }
+    // MARK: Controls
 
     private var controls: some View {
         HStack {
-            if step > 0 {
-                Button("Back") { step -= 1 }
-                    .buttonStyle(.bordered)
-            }
+            Button("Back") { back() }
+                .buttonStyle(.bordered)
             Spacer()
-            Button(step < 2 ? "Continue" : "Done") {
-                if step < 2 {
-                    step += 1
-                } else {
-                    finish()
-                }
-            }
-            .buttonStyle(.borderedProminent)
-            .keyboardShortcut(.defaultAction)
+            Button(step == .calendar ? "Finish" : "Continue") { forward() }
+                .buttonStyle(.borderedProminent)
+                .keyboardShortcut(.defaultAction)
         }
         .padding(16)
     }
 
+    // MARK: Navigation
+
+    private func go(_ s: Step) { withAnimation(.easeInOut(duration: 0.3)) { step = s } }
+
+    private func forward() {
+        switch step {
+        case .home: go(.world)
+        case .world: go(.calendar)
+        case .calendar: go(.finish)
+        default: break
+        }
+    }
+
+    private func back() {
+        switch step {
+        case .home: go(.welcome)
+        case .world: go(.home)
+        case .calendar: go(.world)
+        default: break
+        }
+    }
+
     private func finish() {
-        // Writing the store flips `didCompleteOnboarding`, so the window's
-        // RootWindowView swaps straight to the dashboard — no dismiss needed.
+        // Writing the store flips `didCompleteOnboarding`, so RootWindowView
+        // swaps straight to the dashboard — no dismiss needed. Menu-bar zone
+        // defaults to home; both it and the format are changeable in Settings.
         store.finishOnboarding(
             homeIdentifier: homeID,
             otherIdentifiers: Array(otherIDs),
-            referenceIdentifier: referenceID,
+            referenceIdentifier: nil,
             hourFormat: hourFormat
         )
-    }
-}
-
-/// Small page indicator for the onboarding steps.
-private struct ProgressDots: View {
-    let count: Int
-    let index: Int
-    var body: some View {
-        HStack(spacing: 7) {
-            ForEach(0..<count, id: \.self) { i in
-                Circle()
-                    .fill(i == index ? AnyShapeStyle(.tint) : AnyShapeStyle(.quaternary))
-                    .frame(width: 7, height: 7)
-            }
-        }
     }
 }
